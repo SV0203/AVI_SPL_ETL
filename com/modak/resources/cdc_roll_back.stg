@@ -1,0 +1,31 @@
+
+requireRollBackCrawlJobInfo()::=<<
+select  max(crawl_id) as crawl_id from datamart.crawl_xref where crawl_end_ts = TIMESTAMP '9999-12-31 00:00:00'
+>>
+
+RollBackCrawlJobInfo(rollbackjobno)::=<<
+Select crawl_id, prev_crawl_id as prev_crawl_id, cast (to_char(max(crawl_end_ts), 'YYYY-MM-DD') as date) -1  as etl_date
+from datamart.crawl_xref where crawl_id = $rollbackjobno.crawl_id$
+>>
+
+rollbackTableUpdate(mapgetcrawljobno, datamart_schema, table_name )::=<<
+update $datamart_schema$.$table_name$ a
+set valid_to_ts = '9999-12-31'
+from  (
+select table_id as b_table_id , prev_crawl_id
+from  $datamart_schema$.$table_name$
+where crawl_id =  $mapgetcrawljobno.crawl_id$
+) b
+where a.table_id = b_table_id
+and  a.crawl_id =  b.prev_crawl_id
+>>
+
+rollbackTableDelete(mapgetcrawljobno, datamart_schema, table_name)::=<<
+delete from $datamart_schema$.$table_name$
+where crawl_id = $mapgetcrawljobno.crawl_id$;
+>>
+
+
+delete_query(rollbackjobno)::=<<
+delete from datamart.crawl_xref where crawl_id = $rollbackjobno.crawl_id$
+>>

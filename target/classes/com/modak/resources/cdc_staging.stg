@@ -1,0 +1,137 @@
+
+
+
+staging_cdc_staging_insertquery1(raw_schema, staging_schema, table_name)::=<<
+--insert into $staging_schema$.$table_name$
+select * from $raw_schema$.$table_name$
+>>
+
+
+
+staging_cdc_staging_analysequery1(staging_schema, table_name)::=<<
+analyze $staging_schema$.$table_name$ ;
+>>
+
+staging_cdc_deletequery2_tmp_staging_update(staging_schema, table_name)::=<<
+delete from $staging_schema$.temp_$table_name$_update ;
+>>
+
+staging_cdc_insertquery2_tmp_staging_update(staging_schema, datamart_schema,  table_name,sourceColumns, crawl_id)::=<<
+	--create table if not exists  $staging_schema$.temp_$table_name$_update as
+	insert into    $staging_schema$.temp_$table_name$_update
+	select $sourceColumns:getColumnInfo();separator=","$, valid_from_ts, case when source_flag = 'O' then current_date - 1 else valid_to_ts end as valid_to_ts, crawl_id, prev_crawl_id , source_flag
+	from (
+		Select count(*) over (partition by coalesce(md5_hash,'')  ) as cnt, c.*
+		from (
+			select 'O'::char as source_flag, $sourceColumns:getColumnInfo();separator=","$ , b.valid_from_ts::date, b.valid_to_ts::date ,  b.crawl_id,  b.prev_crawl_id
+			from $staging_schema$.$table_name$ a, ( select * from $datamart_schema$.$table_name$ where valid_to_ts = '9999-12-31'  )  b
+			where b.valid_to_ts = '9999-12-31'::date
+			and a.md5_hash = b.md5_hash
+
+			union all
+
+			Select 'N'::char as source_flag,  $sourceColumns:getColumnInfo();separator=","$ , current_date valid_from_ts, '9999-12-31'::date valid_to_ts, $crawl_id$ as crawl_id, $crawl_id$ -1  as prev_crawl_id
+			from ( select * from $staging_schema$.$table_name$)  a
+        				left outer join ( select * from $datamart_schema$.$table_name$ where valid_to_ts = '9999-12-31'  ) b
+				ON a.md5_hash = b.md5_hash
+		) c
+	) a where a.cnt = 1
+	;
+>>
+
+find_deleted_records(staging_schema, datamart_schema,  table_name,sourceColumns, crawl_id)::=<<
+	--create table if not exists  $staging_schema$.temp_$table_name$_update as
+	insert into    $staging_schema$.temp_$table_name$_update
+	select $sourceColumns:getColumnInfo();separator=","$, valid_from_ts, valid_to_ts, crawl_id, prev_crawl_id , source_flag
+	from (
+		Select count(*) over (partition by coalesce(md5_hash,'')  ) as cnt, c.*
+		from (
+			select 'O'::char as source_flag, $sourceColumns:getColumnInfo();separator=","$ , b.valid_from_ts::date, b.valid_to_ts::date ,  b.crawl_id,  b.prev_crawl_id
+			from $staging_schema$.$table_name$ a, ( select * from $datamart_schema$.$table_name$ where valid_to_ts = '9999-12-31'  )  b
+			where b.valid_to_ts = '9999-12-31'::date
+			and a.md5_hash = b.md5_hash
+
+			union all
+
+			Select 'D'::char as source_flag,  $sourceColumns:getColumnInfo();separator=","$ , valid_from_ts, current_date valid_to_ts, $crawl_id$ as crawl_id, $crawl_id$ -1  as prev_crawl_id
+			from (select * from $datamart_schema$.$table_name$ where valid_to_ts = '9999-12-31')  a
+        				left outer join ( select * from $staging_schema$.$table_name$  ) b
+				ON a.md5_hash = b.md5_hash
+		) c
+	) a where a.cnt = 1
+	;
+>>
+
+find_new_records(staging_schema, datamart_schema,  table_name,sourceColumns, crawl_id)::=<<
+	--create table if not exists  $staging_schema$.temp_$table_name$_update as
+	insert into    $staging_schema$.temp_$table_name$_update
+	select $sourceColumns:getColumnInfo();separator=","$, valid_from_ts, valid_to_ts, crawl_id, prev_crawl_id , source_flag
+	from (
+		Select count(*) over (partition by coalesce(md5_hash,'')  ) as cnt, c.*
+		from (
+			select 'O'::char as source_flag, $sourceColumns:getColumnInfo();separator=","$ , b.valid_from_ts::date, b.valid_to_ts::date ,  b.crawl_id,  b.prev_crawl_id
+			from $staging_schema$.$table_name$ a, ( select * from $datamart_schema$.$table_name$ where valid_to_ts = '9999-12-31'  )  b
+			where b.valid_to_ts = '9999-12-31'::date
+			and a.md5_hash = b.md5_hash
+
+			union all
+
+			Select 'N'::char as source_flag,  $sourceColumns:getColumnInfo();separator=","$ , current_date valid_from_ts, '9999-12-31'::date valid_to_ts, $crawl_id$ as crawl_id, $crawl_id$ -1  as prev_crawl_id
+			from ( select * from $staging_schema$.$table_name$)  a
+        				left outer join ( select * from $datamart_schema$.$table_name$ where valid_to_ts = '9999-12-31'  ) b
+				ON a.md5_hash = b.md5_hash
+		) c
+	) a where a.cnt = 1
+	;
+>>
+
+
+staging_cdc_analyse_query2_tmp_staging_update(staging_schema, table_name)::=<<
+analyze   $staging_schema$.temp_$table_name$_update ;
+>>
+
+update_deleted_records(staging_schema, datamart_schema, table_name )::=<<
+	update $datamart_schema$.$table_name$ a
+	set valid_to_ts= b.valid_to_ts
+	from $staging_schema$.temp_$table_name$_update b
+	where a.md5_hash = b.md5_hash
+	and b.source_flag = 'D';
+>>
+
+
+staging_cdc_insertquery3_staging(datamart_schema,staging_schema, table_name, sourceColumns )::=<<
+	insert into $datamart_schema$.$table_name$
+	--create table if not exists  $datamart_schema$.$table_name$ as
+	select   $sourceColumns:getColumnInfo();separator=","$  , valid_from_ts, valid_to_ts, crawl_id, prev_crawl_id
+	from $staging_schema$.temp_$table_name$_update a
+	where source_flag = 'N' ;
+>>
+
+
+staging_cdc_updatequery3_staging(staging_schema, datamart_schema, table_name )::=<<
+	update $datamart_schema$.$table_name$ a
+	set valid_to_ts= b.valid_to_ts
+	from $staging_schema$.temp_$table_name$_update b
+	where a.md5_hash = b.md5_hash
+	and b.source_flag = 'O';
+>>
+
+staging_cdc_analyse_query3_staging(datamart_schema,table_name )::=<<
+	analyze $datamart_schema$.$table_name$ ;
+>>
+
+
+sourceColumns(list) ::=<<
+$list:getColumnInfo()$
+>>
+
+getColumnInfo(map) ::=<<
+a.$map.column_name$
+>>
+
+
+
+// This is the last step . It deletes or truncates data of staging schema tables
+staging_cdc_staging_deletequery1(staging_schema,table_name )::=<<
+delete from  $staging_schema$.temp_$table_name$_update;
+>>

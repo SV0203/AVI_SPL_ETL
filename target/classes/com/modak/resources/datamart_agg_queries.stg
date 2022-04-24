@@ -1,0 +1,174 @@
+//-------------- agg_monitordata queries start --------------------------------------
+
+create_datamart_agg_Schema()::=<<
+create schema IF NOT EXISTS datamart_agg;
+>>
+
+create_datamart_agg_table_agg_monitordata()::=<<
+ create table IF NOT EXISTS datamart_agg.agg_monitordata (
+	deviceid uuid NULL,
+	monitor_date date NULL,
+	monitor_hour int2 NULL,
+	max_pinglatency float8 NULL,
+	avg_pinglatency float8 NULL,
+	cnt_login_error int4 NULL,
+	cnt_api_error int4 NULL,
+	sum_incall int4 NULL,
+	sum_reach int4 NULL,
+	cnt_rows int4 NULL
+);
+>>
+
+insert_datamart_agg_table_agg_monitordata()::=<<
+INSERT INTO datamart_agg.agg_monitordata
+SELECT deviceid
+    , date(dt_monitored) as monitored_date
+    , extract(hour from dt_monitored)::integer as monitored_hour
+    , max(pinglatency)
+    , ROUND(avg(pinglatency),2)
+    , count(login_error)
+    , count(api_error)
+    , sum(coalesce(incall::integer, 0))
+    , sum(coalesce(reachable::integer, 0))
+    , count(*)
+   FROM staging.monitordata
+   GROUP BY deviceid, date(dt_monitored), extract(hour from dt_monitored)::integer
+>>
+
+//-------------- agg_monitordata_call queries start --------------------------------------
+
+
+create_datamart_agg_table_agg_monitordata_call()::=<<
+CREATE TABLE IF NOT EXISTS datamart_agg.agg_monitordata_call (
+	deviceid uuid NULL,
+	callid varchar NULL,
+	monitored_date date NULL,
+	monitored_hour int4 NULL,
+	max_callraterx int4 NULL,
+	avg_callraterx numeric NULL,
+	min_callraterx int4 NULL,
+	max_callratetx int4 NULL,
+	avg_callratetx numeric NULL,
+	min_callratetx int4 NULL,
+	max_percentpacketlossrx numeric NULL,
+	percentpacketlossrx numeric NULL,
+	min_percentpacketlossrx numeric NULL,
+	max_percentpacketlosstx numeric NULL,
+	avg_percentpacketlosstx numeric NULL,
+	min_percentpacketlosstx numeric NULL,
+	max_audiobitraterx int4 NULL,
+	avg_audiobitraterx numeric NULL,
+	min_audiobitraterx int4 NULL,
+	max_audiobitratetx int4 NULL,
+	avg_audiobitratetx numeric NULL,
+	min_audiobitratetx int4 NULL,
+	max_audiojitterrx numeric NULL,
+	avg_audiojitterrx numeric NULL,
+	min_audiojitterrx numeric NULL,
+	max_audiojittertx numeric NULL,
+	avg_audiojittertx numeric NULL,
+	min_audiojittertx numeric NULL,
+	max_audiopacketlossrx int4 NULL,
+	avg_audiopacketlossrx numeric NULL,
+	min_audiopacketlossrx int4 NULL,
+	max_audiopacketlosstx int4 NULL,
+	avg_audiopacketlosstx numeric NULL,
+	min_audiopacketlosstx int4 NULL,
+	max_videobitraterx int4 NULL,
+	avg_videobitraterx numeric NULL,
+	min_videobitraterx int4 NULL,
+	max_videobitratetx int4 NULL,
+	avg_videobitratetx numeric NULL,
+	min_videobitratetx int4 NULL,
+	max_videojitterrx numeric NULL,
+	avg_videojitterrx numeric NULL,
+	min_videojitterrx numeric NULL,
+	max_videojittertx numeric NULL,
+	avg_videojittertx numeric NULL,
+	min_videojittertx numeric NULL,
+	max_videopacketlossrx int4 NULL,
+	avg_videopacketlossrx numeric NULL,
+	min_videopacketlossrx int4 NULL,
+	max_videopacketlosstx int4 NULL,
+	avg_videopacketlosstx numeric NULL,
+	min_videopacketlosstx int4 NULL,
+	max_frameraterx numeric NULL,
+	avg_frameraterx numeric NULL,
+	min_frameraterx numeric NULL,
+	max_frameratetx numeric NULL,
+	avg_frameratetx numeric NULL,
+	min_frameratetx numeric NULL,
+	min_dt_monitored timestamp NULL,
+	max_dt_monitored timestamp NULL,
+	row_count int8 NULL
+);
+>>
+
+insert_datamart_agg_table_agg_monitordata_call()::=<<
+
+Insert into datamart_agg.agg_monitordata_call
+SELECT deviceid
+	, callid
+	, date(dt_monitored) as monitored_date
+	, extract(hour from dt_monitored)::integer as monitored_hour
+	, max(callraterx) as max_callraterx
+	, ROUND(avg(callraterx), 2) as avg_callraterx
+	, min(callraterx) as min_callraterx
+	, max(callratetx) as max_callratetx
+	, ROUND(avg(callratetx), 2) as avg_callratetx
+	, min(callratetx) as min_callratetx
+	, max(percentpacketlossrx) as max_percentpacketlossrx
+	, ROUND(avg(percentpacketlossrx), 2) as percentpacketlossrx
+	, min(percentpacketlossrx) as min_percentpacketlossrx
+	, max(percentpacketlosstx) as max_percentpacketlosstx
+	, ROUND(avg(percentpacketlosstx), 2) as avg_percentpacketlosstx
+	, min(percentpacketlosstx) as min_percentpacketlosstx
+	, max(audiobitraterx) as max_audiobitraterx
+	, ROUND(avg(audiobitraterx), 2) as avg_audiobitraterx
+	, min(audiobitraterx) as min_audiobitraterx
+	, max(audiobitratetx) as max_audiobitratetx
+	, ROUND(avg(audiobitratetx), 2) as avg_audiobitratetx
+	, min(audiobitratetx) as min_audiobitratetx
+	, max(audiojitterrx) as max_audiojitterrx
+	, ROUND(avg(audiojitterrx), 2) as avg_audiojitterrx
+	, min(audiojitterrx) as min_audiojitterrx
+	, max(audiojittertx) as max_audiojittertx
+	, ROUND(avg(audiojittertx), 2) as avg_audiojittertx
+	, min(audiojittertx) as min_audiojittertx
+	, max(audiopacketlossrx) as max_audiopacketlossrx
+	, ROUND(avg(audiopacketlossrx), 2) as avg_audiopacketlossrx
+	, min(audiopacketlossrx) as min_audiopacketlossrx
+	, max(audiopacketlosstx) as max_audiopacketlosstx
+	, ROUND(avg(audiopacketlosstx), 2) as avg_audiopacketlosstx
+	, min(audiopacketlosstx) as min_audiopacketlosstx
+	, max(videobitraterx) as max_videobitraterx
+	, ROUND(avg(videobitraterx), 2) as avg_videobitraterx
+	, min(videobitraterx) as min_videobitraterx
+	, max(videobitratetx) as max_videobitratetx
+	, ROUND(avg(videobitratetx), 2) as avg_videobitratetx
+	, min(videobitratetx) as min_videobitratetx
+	, max(videojitterrx) as max_videojitterrx
+	, ROUND(avg(videojitterrx), 2) as avg_videojitterrx
+	, min(videojitterrx) as min_videojitterrx
+	, max(videojittertx) as max_videojittertx
+	, ROUND(avg(videojittertx), 2) as avg_videojittertx
+	, min(videojittertx) as min_videojittertx
+	, max(videopacketlossrx) as max_videopacketlossrx
+	, ROUND(avg(videopacketlossrx), 2) as avg_videopacketlossrx
+	, min(videopacketlossrx) as min_videopacketlossrx
+	, max(videopacketlosstx) as max_videopacketlosstx
+	, ROUND(avg(videopacketlosstx), 2) as avg_videopacketlosstx
+	, min(videopacketlosstx) as min_videopacketlosstx
+	, max(frameraterx) as max_frameraterx
+	, ROUND(avg(frameraterx), 2) as avg_frameraterx
+	, min(frameraterx) as min_frameraterx
+	, max(frameratetx) as max_frameratetx
+	, ROUND(avg(frameratetx), 2) as avg_frameratetx
+	, min(frameratetx) as min_frameratetx
+	, min(dt_monitored) as min_dt_monitored
+	, max(dt_monitored) as max_dt_monitored
+	, count(*) as row_count
+FROM staging.monitordata_call
+GROUP BY deviceid, callid, date(dt_monitored), extract(hour from dt_monitored)::integer;
+>>
+

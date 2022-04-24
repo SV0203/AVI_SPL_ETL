@@ -1,0 +1,10 @@
+tables: [
+    'accounts'
+  ]
+
+
+large_tables: [
+    'monitordata',
+    'monitordata_call',
+    'monitordata_extended_properties',
+]

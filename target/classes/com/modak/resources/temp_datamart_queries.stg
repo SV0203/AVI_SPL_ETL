@@ -1,0 +1,815 @@
+//-------------- dim_account_details queries start --------------------------------------
+create_temp_datamart_table_dim_account_details()::=<<
+create table IF NOT EXISTS datamart_staging.temp_dim_account_details_update (
+account_id uuid,
+parent_id uuid,
+name	varchar(255),
+active	bool,
+dt_created		timestamp,
+dt_lastupdated	timestamp,
+commproxy_enabled	bool,
+exchange_enabled	bool,
+tms_enabled	bool,
+external_sync_enabled	bool,
+channel_id	int8,
+external_id	varchar(255),
+account_manager	varchar(255),
+helpdesk_email	varchar(255),
+helpdesk_phone	varchar(255)
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_account_details queries end --------------------------------------
+
+//-------------- dim_account_usages_details queries start --------------------------------------
+create_temp_datamart_table_dim_account_usages_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_dim_account_usages_details_update (
+	id int8 ,
+	account_id uuid ,
+	sf_account_id text ,
+	code text,
+	description text ,
+	job_id text ,
+	contract_id text ,
+	service_id text ,
+	qty_used numeric(10, 2) ,
+	qty_shipped int4 ,
+	dt_reporting_period_end timestamp ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_account_usages_details queries end --------------------------------------
+
+//-------------- dim_conference_elog_billing_codes queries start --------------------------------------
+create_temp_datamart_table_dim_conference_elog_billing_codes()::=<<
+CREATE TABLE if Not exists datamart_staging.temp_dim_conference_elog_billing_codes_update (
+	conference_elog_billing_code_id int8 ,
+	meeting_instance_id int8 ,
+	billing_code varchar ,
+	quantity int4 ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	description varchar
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_conference_elog_billing_codes queries end --------------------------------------
+
+//-------------- dim_device_details queries start --------------------------------------
+create_temp_datamart_table_dim_device_details()::=<<
+create table if Not exists datamart_staging.temp_dim_device_details_update (
+	account_id uuid ,
+	location_id uuid,
+	room_id uuid ,
+	device_id uuid ,
+	customer_cost_center_id varchar(255) ,
+	active bool ,
+	serial_number varchar(255) ,
+	mac_address varchar(255) ,
+	software_version varchar(255) ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	logo_id int8 ,
+	normalized_mac_address varchar(255) ,
+	gatekeeper_ip varchar(255) ,
+	e164 varchar(255) ,
+	sip_registrar varchar(255) ,
+	sip_uri varchar(255) ,
+	snmp_community varchar(255) ,
+	vip_device bool ,
+	device_model varchar(255) ,
+	category varchar(50) ,
+	manufacturer varchar(100),
+	monitoring_service varchar(128) ,
+	monitoring_source varchar(50) ,
+	device_protocol varchar(20) ,
+	device_type varchar(20) ,
+	"name" varchar(255) ,
+	third_party_id varchar(255) ,
+	model_logo_id int8 ,
+	api_supported bool ,
+	aggregator_id uuid ,
+	is_aggregator bool ,
+	calling_method varchar(50) ,
+	monitoring_level varchar(50) ,
+	local_ip_address varchar(255) ,
+	real_local_ip_address varchar(255) ,
+	monitoring_sources jsonb,
+	ms_team_id varchar(255) ,
+	dt_warranty_expiration date ,
+	dt_lease_expiration date ,
+	device_bandwidth int4 ,
+	video_device_calculated int4 ,
+	av_controller_device_calculated int4
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_device_details queries end --------------------------------------
+
+
+//-------------- dim_location_details queries start --------------------------------------
+
+create_temp_datamart_table_dim_location_details()::=<<
+CREATE TABLE if not exists datamart_staging.temp_dim_location_details_update (
+	account_id uuid,
+	location_id uuid ,
+	city varchar(255) ,
+	country varchar(50) ,
+	latitude numeric(10, 6) ,
+	longitude numeric(10, 6) ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	active bool ,
+	display_name varchar(255) ,
+	external_id varchar(255) ,
+	address1 varchar(255) ,
+	state_or_province varchar(255) ,
+	postal_code varchar(255) ,
+	time_zone varchar(255) ,
+	geo_location_automatic bool ,
+	location_active bool ,
+	dt_deleted varchar(16) ,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_location_details queries end --------------------------------------
+
+//-------------- dim_meeting_instance_ratings_details queries start --------------------------------------
+
+create_temp_datamart_table_dim_meeting_instance_ratings_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_dim_meeting_instance_ratings_details_update (
+	meeting_instance_rating_id int8 ,
+	meeting_instance_id int8 ,
+	rating int4 ,
+	notes jsonb
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+
+>>
+
+//-------------- dim_meeting_instance_ratings_details queries end --------------------------------------
+
+//-------------- dim_meeting_instance_recordings queries start --------------------------------------
+
+
+create_temp_datamart_table_dim_meeting_instance_recordings()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_dim_meeting_instance_recordings_update (
+	meeting_instance_id int8 ,
+	recording_id int8 ,
+	dt_lastupdated timestamp
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_meeting_instance_recordings queries end --------------------------------------
+
+//-------------- dim_roles_details queries start --------------------------------------
+
+create_temp_datamart_table_dim_roles_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_dim_roles_details_update (
+	role_id int8 ,
+	"name" text ,
+	"locked" bool
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_roles_details queries end --------------------------------------
+
+
+//-------------- dim_room_details queries start --------------------------------------
+
+create_temp_datamart_table_dim_room_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_dim_room_details_update (
+	account_id uuid ,
+	location_id uuid ,
+	room_id uuid ,
+	location_latitude numeric(10, 6) ,
+	location_longitude numeric(10, 6) ,
+	"name" text ,
+	short_name text ,
+	capacity int4 ,
+	managed bool ,
+	in_service bool ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	tms_id text ,
+	exchange_id text ,
+	room_scheduling_option text ,
+	vip bool ,
+	display_name text ,
+	third_party_id text ,
+	public_room bool ,
+	room_number text ,
+	contact_name text ,
+	contact_phone text ,
+	contact_email text ,
+	subscription_id text ,
+	"type" text ,
+	monitored_ip_address text ,
+	dt_service_expiration date ,
+	dt_deleted timestamp ,
+	room_linked_accounts_calculated text ,
+	room_dt_certified_calculated timestamp ,
+	is_room_managed_calculated text ,
+	is_room_vip_calculated text ,
+	is_room_in_service_calculated bool ,
+	room_visibility_calculated text
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_room_details queries end --------------------------------------
+
+
+//-------------- dim_ticket_details queries start --------------------------------------
+
+
+create_temp_datamart_table_dim_ticket_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_dim_ticket_details_update (
+	account_id uuid ,
+	room_id uuid ,
+	device_id uuid ,
+	ticket_id int8 ,
+	ticket_issue_id int8 ,
+	subject text ,
+	dt_open timestamp ,
+	dt_lastupdated timestamp ,
+	total_events int4 ,
+	ticket_alert_priority text ,
+	priority text ,
+	status text ,
+	requestor text ,
+	description text ,
+	dt_closed timestamp ,
+	third_party_ticket_id text ,
+	assign_to_email text ,
+	closed_by text ,
+	issue text ,
+	issue_resolution text ,
+	issue_source text ,
+	"comment" text ,
+	issue_type text ,
+	issue_lastupdated timestamp ,
+	issue_sub_types text ,
+	closed_by_calculated varchar ,
+	ticket_duration_interval_calculated text ,
+	is_cleared_calculated text ,
+	ticket_close_type_calculated text ,
+	open_ticket_calculated int8 ,
+	ticket_duration_days_calculated float8 ,
+	tickets_events_count_calculated text ,
+	raise_type_calculated text
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_ticket_details queries end --------------------------------------
+
+
+//-------------- dim_ticket_related_meetings  queries start --------------------------------------
+create_temp_datamart_table_dim_ticket_related_meetings()::=<<
+CREATE TABLE IF NOT EXISTS  datamart_staging.temp_dim_ticket_related_meetings_update (
+	ticket_related_meeting_id int8 ,
+	ticket_id int8 ,
+	conference_id int8 ,
+	title text ,
+	meeting_instance_id int8 ,
+	dt_lastupdated timestamp ,
+	dt_start_time timestamp
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+//-------------- dim_ticket_related_meetings  queries end  --------------------------------------
+
+
+//-------------- dim_user_details  queries start --------------------------------------
+
+create_temp_datamart_table_dim_user_details()::=<<
+CREATE TABLE IF NOT EXISTS  datamart_staging.temp_dim_user_details_update (
+	account_id uuid ,
+	user_id uuid ,
+	role_id int4 ,
+	active bool ,
+	first_name text ,
+	last_name text ,
+	email text ,
+	dt_lastlogin timestamp ,
+	vip bool ,
+	user_name text ,
+	city text ,
+	state_or_province text ,
+	postal_code text ,
+	country text ,
+	time_zone text ,
+	department text ,
+	title text ,
+	supervisor text ,
+	billing_code text ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	"language" text ,
+	self_registered bool ,
+	self_registered_cal text
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+
+//-------------- dim_user_details  queries end  --------------------------------------
+
+//-------------- dim_users_services_details  queries start  --------------------------------------
+
+create_temp_datamart_table_dim_users_services_details()::=<<
+CREATE TABLE IF NOT EXISTS  datamart_staging.temp_dim_users_services_details_update (
+	user_id text ,
+	account_service text
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+
+
+//-------------- dim_users_services_details  queries end  --------------------------------------
+
+//-------------- dim_vmrs_details  queries start  --------------------------------------
+
+create_temp_datamart_table_dim_vmrs_details()::=<<
+CREATE TABLE IF NOT EXISTS  datamart_staging.temp_dim_vmrs_details_update (
+	account_id uuid ,
+	user_id uuid ,
+	vmrs_id uuid ,
+	vmr_type text ,
+	vmr_name text ,
+	active bool ,
+	uri text ,
+	e164 text ,
+	host_layout text ,
+	guest_layout text ,
+	dt_lastupdated timestamp ,
+	"dynamic" bool ,
+	shared bool ,
+	provider text ,
+	external_owner text
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+
+
+//-------------- dim_vmrs_details  queries end  --------------------------------------
+
+
+//-------------- fact_conference_elog_attendance_details  queries start  --------------------------------------
+
+create_temp_datamart_table_fact_conference_elog_attendance_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_fact_conference_elog_attendance_details_update (
+	conference_elog_attendance_id int8 ,
+	meeting_instance_id int8 ,
+	room_id text ,
+	time_video_start timestamp ,
+	time_video_end timestamp ,
+	capacity int4 ,
+	attendance_actual int4 ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+
+
+//-------------- fact_conference_elog_attendance_details  queries end  --------------------------------------
+
+//-------------- fact_conference_elog_participant_details  queries start  --------------------------------------
+
+
+
+
+create_temp_datamart_table_fact_conference_elog_participant_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_fact_conference_elog_participant_details_update (
+	conference_elog_participant_id int8 ,
+	meeting_instance_id int8 ,
+	room_id text ,
+	device_id text ,
+	connect_protocol text ,
+	dialed_in bool ,
+	bandwidth int4 ,
+	time_connected timestamp ,
+	time_disconnected timestamp ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	address text ,
+	participant_id int8 ,
+	"name" text ,
+	remote_address text ,
+	external_id text
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+
+>>
+
+
+
+
+//-------------- fact_conference_elog_participant_details  queries end  --------------------------------------
+
+//-------------- fact_conference_participant_details  queries start  --------------------------------------
+
+
+create_temp_datamart_table_fact_conference_participant_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_fact_conference_participant_details_update (
+	account_id uuid ,
+	location_id uuid ,
+	room_id uuid ,
+	device_id uuid ,
+	meeting_id int8 ,
+	meeting_instance_status text ,
+	meeting_instance_start_time timestamp ,
+	meeting_instance_id int8 ,
+	conference_participant_id int8 ,
+	display_name text ,
+	room_name text ,
+	is_room_managed_calculated text ,
+	external_room_cal int8 ,
+	connect_protocol text ,
+	"name" text ,
+	address text ,
+	remote_address text ,
+	time_connected timestamp ,
+	time_disconnected timestamp ,
+	bandwidth int4 ,
+	"external" bool ,
+	scheduled bool ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	status_detail text ,
+	conference_participant_status text ,
+	call_id text ,
+	external_id text ,
+	dial_in bool ,
+	bridge_id int8 ,
+	video_layout_id int8 ,
+	custom_room_id int8 ,
+	audio_mute_rx bool ,
+	audio_mute_tx bool ,
+	video_mute_rx bool ,
+	video_mute_tx bool ,
+	num_connection_minutes_calculated float8 ,
+	connection_duration_min_calculated float8
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+
+//-------------- fact_conference_participant_details  queries end  --------------------------------------
+
+//-------------- fact_meeting_details  queries end  --------------------------------------
+
+
+create_temp_datamart_table_fact_meeting_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_fact_meeting_details_update (
+	meeting_id int8 ,
+	account_id uuid ,
+	title text ,
+	time_zone text ,
+	setup_time timestamp ,
+	start_time timestamp ,
+	end_time timestamp ,
+	requestor_email text ,
+	email_notification bool ,
+	recurrence_rule text ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	creator text ,
+	ports int4 ,
+	parent_id int8 ,
+	recurrent_instance_id text ,
+	reserved_ports int4 ,
+	join_by_phone bool ,
+	join_by_web bool ,
+	create_vmr bool ,
+	record_meeting bool ,
+	stream_meeting bool ,
+	exchange_id text ,
+	vip_meeting bool ,
+	vip_meeting_id int8 ,
+	schedmee_vip_meeting text ,
+	producer_id text ,
+	producer_service text ,
+	meeting_purpose text ,
+	schedmee_meeting_purpose text ,
+	meeting_setup text ,
+	meeting_source text ,
+	schedmee_meeting_source text ,
+	meeting_status text ,
+	meeting_service text ,
+	owner_email text ,
+	recurrence_end timestamp ,
+	audio_service_id int8 ,
+	audio_service_auto_selected bool ,
+	mcu_auto_selected bool ,
+	streaming_url text ,
+	owner_id text ,
+	vmr_id text ,
+	video_layout_id int8 ,
+	ban text ,
+	cost_center text ,
+	notes text
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+
+>>
+
+//-------------- fact_meeting_details  queries end  --------------------------------------
+
+
+//-------------- fact_meeting_instance_details  queries start  --------------------------------------
+
+
+create_temp_datamart_table_fact_meeting_instance_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_fact_meeting_instance_details_update (
+	meeting_instance_id int8 ,
+	account_id text ,
+	meeting_id int8 ,
+	title text ,
+	creator text ,
+	notes text ,
+	setup_time timestamp ,
+	start_time timestamp ,
+	end_time timestamp ,
+	dt_meeting_lastupdated timestamp ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	scheduled_meeting_id int8 ,
+	producer_id text ,
+	instance_notes text ,
+	status_detail text ,
+	instance_type text ,
+	instance_status text ,
+	tms_id int8 ,
+	wrapped_up bool ,
+	vmr_id text ,
+	"locked" bool ,
+	recording_id int8 ,
+	sip_uri text ,
+	total_connected_participants int4 ,
+	video_layout_id int8 ,
+	start_date_cal date ,
+	day_mi_start_date_cal text ,
+	hours_mi_start_date_cal text ,
+	meeting_duration_minutes_cal float8 ,
+	video_meetings int8 ,
+	video_meeting_cal int8 ,
+	successfull_video_meetings int8 ,
+	unsuccessful_meeting_instance_id int8 ,
+	meeting_succeeded_cal text ,
+	meeting_produced_cal text ,
+	is_vnoc_created text ,
+	mcu_id text
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+
+>>
+
+
+
+//-------------- fact_meeting_instance_details  queries end  --------------------------------------
+
+//-------------- fact_recording_details  queries start  --------------------------------------
+
+
+
+
+create_temp_datamart_table_fact_recording_details()::=<<
+
+CREATE TABLE IF NOT EXISTS datamart_staging.temp_fact_recording_details_update (
+	recording_id int8 ,
+	owner_id text ,
+	account_id uuid ,
+	dt_start timestamp ,
+	file_size int8 ,
+	duration int4 ,
+	session_id text ,
+	paused bool ,
+	published bool ,
+	is_public bool ,
+	listed bool ,
+	dt_lastupdated timestamp ,
+	status text ,
+	recorder_id text ,
+	dt_deleted timestamp ,
+	storage_provider text
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+
+//-------------- fact_recording_details  queries end  --------------------------------------
+
+//-------------- fact_conference_elog_details  queries start  --------------------------------------
+
+create_temp_datamart_table_fact_conference_elog_details()::=<<
+
+CREATE TABLE if not exists datamart_staging.temp_fact_conference_elog_details_update (
+	id int8 NULL,
+	meeting_instance_id int8 NULL,
+	requester varchar NULL,
+	recorded bool NULL,
+	streamed bool NULL,
+	overtime bool NULL,
+	vip_meeting bool NULL,
+	producer_produced bool NULL,
+	producer uuid NULL,
+	producer_attendance_minutes int4 NULL,
+	producer_attend_full_meeting bool NULL,
+	succeeded bool NULL,
+	quality_assessment int4 NULL,
+	third_party_tickets varchar NULL,
+	dt_created timestamp NULL,
+	dt_lastupdated timestamp NULL,
+	mcu_id uuid NULL,
+	meeting_creator_id uuid NULL,
+	meeting_purpose varchar NULL,
+	meeting_source varchar NULL,
+	meeting_service_type varchar NULL,
+	owner_email varchar NULL,
+	producer_monitored bool NULL
+,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+
+
+
+//-------------- fact_conference_elog_details  queries end  --------------------------------------
+
+//-------------- dim_meeting_mcu  queries start  --------------------------------------
+
+
+create_temp_datamart_table_dim_meeting_mcu()::=<<
+
+CREATE table if not exists datamart_staging.temp_dim_meeting_mcu_update (
+id int8 NULL,
+meeting_id int8 NULL,
+device_id text NULL,
+mcu_reservation_id text NULL,
+dt_created timestamp NULL,
+dt_lastupdated timestamp NULL,
+md5_hash text null,
+valid_from_ts date NULL,
+valid_to_ts date NULL,
+crawl_id int8 NULL,
+prev_crawl_id int8 NULL,
+source_flag bpchar(1) NULL
+);
+>>
+
+create_temptemp_monitor_data_extended_maptoproperties_update()::=<<
+CREATE table if not exists datamart_staging.temp_monitor_data_extended_maptoproperties_update (
+	device_model varchar NULL,
+	properties varchar NULL,
+	valid_from_ts date NULL,
+	valid_to_ts date NULL,
+	crawl_id int8 NULL,
+	prev_crawl_id int8 NULL,
+	source_flag bpchar(1) NULL
+);
+>>
+
+
+
+

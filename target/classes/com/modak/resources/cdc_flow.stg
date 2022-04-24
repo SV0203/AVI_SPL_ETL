@@ -1,0 +1,19 @@
+
+getNewCrawlJobInfo()::=<<
+select coalesce(max(crawl_id),0)+1 as crawl_id from datamart.crawl_xref
+>>
+
+insertCrawlJobInfo(crawl_id)::=<<
+insert into datamart.crawl_xref
+select coalesce($crawl_id$,0),  coalesce($crawl_id$,0) -1   , current_timestamp, TIMESTAMP '9999-12-31 00:00:00'
+>>
+
+
+getCrawlJobInfo()::=<<
+select coalesce(max(crawl_id),0) as crawl_id from datamart.crawl_xref
+>>
+
+updateCrawlJobInfo_Finished(crawl_id)::=<<
+update datamart.crawl_xref set valid_to_ts = current_timestamp where crawl_id = $crawl_id$
+>>
+

@@ -1,0 +1,98 @@
+
+
+staging_json_analysequery1(staging_schema)::=<<
+analyze $staging_schema$.monitor_data_extended_maptoproperties ;
+>>
+
+staging_json_deletequery2_tmp_staging_update(staging_schema)::=<<
+delete from $staging_schema$.temp_monitor_data_extended_maptoproperties_update ;
+>>
+staging_json_create_tmp_staging_update(staging_schema, datamart_schema,  sourceColumns, crawl_id)::=<<
+insert into staging_schema.temp_monitor_data_extended_maptoproperties_update as
+	select coalesce(a.device_model,'') as device_model ,coalesce(a.properties,'') as properties,  valid_from_ts, case when source_flag = 'O' then current_date - 1 else valid_to_ts end as valid_to_ts, crawl_id, prev_crawl_id , source_flag
+	from (
+		Select count(*) over (partition by  coalesce(a.device_model,''),coalesce(a.properties,'') ) as cnt, a.*
+		from (
+			select 'O'::char as source_flag, coalesce(a.device_model,'') as device_model ,coalesce(a.properties,'') as properties  , b.valid_from_ts::date, b.valid_to_ts::date ,  b.crawl_id,  b.prev_crawl_id
+			from staging_schema.monitor_data_extended_maptoproperties a, ( select * from datamart_schema.monitor_data_extended_maptoproperties where valid_to_ts = '9999-12-31'  )  b
+			where b.valid_to_ts = '9999-12-31'::date
+			and a.device_model = b.device_model
+			and a.properties = b.properties
+
+			union all
+
+			Select 'N'::char as source_flag,  coalesce(a.device_model,''),coalesce(a.properties,'') ,  current_date valid_from_ts, '9999-12-31'::date valid_to_ts, 23 as crawl_id, 23 -1  as prev_crawl_id
+			from ( select * from staging_schema.monitor_data_extended_maptoproperties)  a
+        				left outer join ( select * from datamart_schema.monitor_data_extended_maptoproperties where valid_to_ts = '9999-12-31'  ) b
+				ON a.device_model = b.device_model
+                and a.properties = b.properties
+		) a
+	) a where a.cnt = 1
+	>>
+
+staging_json_insertquery2_tmp_staging_update(staging_schema, datamart_schema,  sourceColumns, crawl_id)::=<<
+	insert into   $staging_schema$.temp_monitor_data_extended_maptoproperties_update
+	--create table if not exists  $staging_schema$.temp_monitor_data_extended_maptoproperties_update as
+		select coalesce(a.device_model,'') as device_model ,coalesce(a.properties,'') as properties,  valid_from_ts, case when source_flag = 'O' then current_date - 1 else valid_to_ts end as valid_to_ts, crawl_id, prev_crawl_id , source_flag
+    	from (
+    		Select count(*) over (partition by  coalesce(a.device_model,''),coalesce(a.properties,'') ) as cnt, a.*
+    		from (
+    			select 'O'::char as source_flag, coalesce(a.device_model,'') as device_model ,coalesce(a.properties,'') as properties  , b.valid_from_ts::date, b.valid_to_ts::date ,  b.crawl_id,  b.prev_crawl_id
+    			from $staging_schema$.monitor_data_extended_maptoproperties a, ( select * from $datamart_schema$.monitor_data_extended_maptoproperties where valid_to_ts = '9999-12-31'  )  b
+    			where b.valid_to_ts = '9999-12-31'::date
+    			and a.device_model = b.device_model
+    			and a.properties = b.properties
+
+    			union all
+
+    			Select 'N'::char as source_flag,  coalesce(a.device_model,''),coalesce(a.properties,'') ,  current_date valid_from_ts, '9999-12-31'::date valid_to_ts, 23 as crawl_id, 23 -1  as prev_crawl_id
+    			from ( select * from $staging_schema$.monitor_data_extended_maptoproperties)  a
+            				left outer join ( select * from $datamart_schema$.monitor_data_extended_maptoproperties where valid_to_ts = '9999-12-31'  ) b
+    				ON a.device_model = b.device_model
+                    and a.properties = b.properties
+    		) a
+    	) a where a.cnt = 1
+	;
+>>
+
+
+staging_json_analyse_query2_tmp_staging_update(staging_schema, table_name)::=<<
+analyze   $staging_schema$.temp_monitor_data_extended_maptoproperties_update ;
+>>
+
+
+staging_json_insertquery3_staging(datamart_schema,staging_schema, table_name, sourceColumns )::=<<
+	insert into $datamart_schema$.monitor_data_extended_maptoproperties
+	select   $sourceColumns:getColumnInfo();separator=","$ , valid_from_ts, valid_to_ts, crawl_id, prev_crawl_id
+	from $staging_schema$.temp_monitor_data_extended_maptoproperties_update a
+	where source_flag = 'N' ;
+>>
+
+staging_json_updatequery3_staging(staging_schema, datamart_schema, table_name )::=<<
+	update $datamart_schema$.monitor_data_extended_maptoproperties a
+	set valid_to_ts= b.valid_to_ts
+	from $staging_schema$.temp_monitor_data_extended_maptoproperties_update b
+	where a.device_model = b.device_model
+    and a.properties = b.properties
+	and b.source_flag = 'O';
+>>
+
+staging_json_analyse_query3_staging(datamart_schema,table_name )::=<<
+	analyze $datamart_schema$.monitor_data_extended_maptoproperties ;
+>>
+
+
+sourceColumns(list) ::=<<
+$list:getColumnInfo()$
+>>
+
+getColumnInfo(map) ::=<<
+coalesce(a.$map.column_name$,'')
+>>
+
+
+
+// This is the last step . It deletes or truncates data of staging schema tables
+staging_json_staging_deletequery1(staging_schema,table_name )::=<<
+delete from  $staging_schema$.monitor_data_extended_maptoproperties_staging;
+>>

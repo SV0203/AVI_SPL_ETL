@@ -1,0 +1,6 @@
+{
+  "cdc_flow": "com/modak/resources/cdc_flow.stg",
+  "cdc_staging": "com/modak/resources/cdc_staging.stg",
+  "cdc_roll_back": "com/modak/resources/cdc_roll_back.stg",
+  "json_cdc_perform": "C:/Users/sv0203/Workflow/AVI_SPL_Git/AVI_SPL/com/modak/resources/json_cdc_perform.stg"
+}

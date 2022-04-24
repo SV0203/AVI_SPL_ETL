@@ -1,0 +1,49 @@
+
+getTableColumns(tablename)::=<<
+select  table_schema , table_name,  column_name,  ordinal_position
+from information_schema.columns where table_schema = 'datamart_staging'
+and table_name = '$tablename$'
+and column_name not in ('valid_to_ts', 'valid_from_ts')
+order by ordinal_position
+>>
+
+getTableColumns2(tableMap)::=<<
+select json_agg(sub)  from (
+select  table_schema , table_name,  column_name,  ordinal_position from information_schema.columns where table_schema = 'core'
+and table_name = '$tableMap.table_name$' and column_name not in ('valid_to_ts', 'valid_from_ts')  )  as sub
+>>
+
+staging_cdc_table_data_from_create_ddl(tablename,sourceColumns)::=<<
+create table if not exists $tablename$ as
+(
+select *, MD5(cast(ROW($sourceColumns:getColumnInfo();separator=","$) as text)) as md5_modak_hash
+from $tablename$
+);
+>>
+
+getJsontableColumns()::=<<
+select  table_schema , table_name,  column_name,  ordinal_position
+from information_schema.columns where table_schema = 'datamart_staging'
+and table_name = 'monitor_data_extended_maptoproperties'
+order by ordinal_position
+>>
+getJsonColumns()::=<<
+Select distinct device_model, json_object_keys(extended_properties::json) as properties from (
+select m.deviceid ,d.device_model ,m.extended_properties
+from staging.monitordata_extended_properties m
+left outer join staging.devices d on m.deviceid = d.id ) x
+order by device_model;
+>>
+
+insertStagingJsonColumns( )::=<<
+insert into  datamart_staging.monitor_data_extended_maptoproperties (device_model,properties) values (?, ?)
+>>
+
+sourceColumns(list) ::=<<
+$list:getColumnInfo()$
+>>
+
+getColumnInfo(map) ::=<<
+$map.column_name$
+>>
+

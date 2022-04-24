@@ -1,0 +1,12 @@
+group cdcqueries;
+
+cdcqueries() ::=<<
+{
+  "config_path":"com/modak/resources",
+  "table_metadata": "com/modak/resources/table_metadata.stg",
+  "staging_schema":"datamart_staging",
+  "datamart_schema":"datamart",
+  "core_schema":"core"
+
+}
+>>

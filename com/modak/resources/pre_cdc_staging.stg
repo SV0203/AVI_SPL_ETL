@@ -1,0 +1,78 @@
+
+staging_cdc_staging_deletequery1(staging_schema,table_name )::=<<
+delete from  $staging_schema$.$table_name$_staging;
+>>
+
+staging_cdc_staging_insertquery1(raw_schema, staging_schema, table_name)::=<<
+insert into $staging_schema$.$table_name$_staging
+select * from $raw_schema$.$table_name$
+>>
+
+
+
+staging_cdc_staging_analysequery1(staging_schema, table_name)::=<<
+analyze $staging_schema$.$table_name$_staging ;
+>>
+
+staging_cdc_deletequery2_tmp_staging_update(staging_schema, table_name)::=<<
+delete from $staging_schema$.temp_$table_name$_update ;
+>>
+
+staging_cdc_insertquery2_tmp_staging_update(staging_schema, datamart_schema,  table_name,sourceColumns, crawl_id)::=<<
+	insert into   $staging_schema$.temp_$table_name$_update
+	select $sourceColumns:getColumnInfo();separator=","$, valid_from_ts, case when source = 'O' then current_date - 1 else valid_to_ts end as valid_to_ts, crawl_id, prev_crawl_id , source
+	from (
+		Select count(*) over (partition by coalesce(table_id,-9999), coalesce(column_id,-9999), coalesce(column_name,''), coalesce(data_type,''), coalesce(table_name,'')) as cnt, c.*
+		from (
+			select 'O'::char as source, $sourceColumns:getColumnInfo();separator=","$ , b.valid_from_ts::date, b.valid_to_ts::date ,  crawl_id,  prev_crawl_id
+			from $staging_schema$.$table_name$_staging a, ( select * from $datamart_schema$.$table_name$ where valid_to_ts = '9999-12-31'  )  b
+			where b.valid_to_ts = '9999-12-31'::date
+			and a.id = b.id
+
+			union all
+
+			Select 'N'::char as source,  $sourceColumns:getColumnInfo();separator=","$ , current_date valid_from_ts, '9999-12-31'::date valid_to_ts, $crawl_id$ as crawl_id, $crawl_id$ -1  as prev_crawl_id
+			from ( select * from $staging_schema$.$table_name$_staging )  b
+        				left outer join ( select * from $datamart_schema$.$table_name$ where valid_to_ts = '9999-12-31'  ) a
+				ON a.id = b.id
+		) c
+	) d where d.cnt = 1
+	;
+>>
+
+
+staging_cdc_analyse_query2_tmp_staging_update()::=<<
+analyze   $staging_schema$.temp_$table_name$_update ;
+>>
+
+
+staging_cdc_insertquery3_staging()::=<<
+	insert into $datamart_schema$.temp_$table_name$
+	select  case when max_table_skey is null then dense_rank() over ( order by id) + max_table_skey else max_table_skey end  as max_table_skey,
+	column_name, data_type, table_name, valid_from_ts, valid_to_ts, crawl_id, prev_crawl_id
+	from $staging_schema$.temp_$table_name$_update ,
+	(select coalesce(max(max_table_skey),0) as max_table_skey from $datamart_schema$.temp_$table_name$) x
+	where source = 'N' ;
+>>
+
+staging_cdc_updatequery3_staging()::=<<
+	update $datamart_schema$.$table_name$ a
+	set valid_to_ts= b.valid_to_ts
+	from $staging_schema$.temp_$table_name$_update b
+	where a.id = b.id
+	and  a.valid_from_ts = b.valid_from_ts
+	and b.source = 'O';
+>>
+
+staging_cdc_analyse_query3_staging(datamart_schema,table_name)::=<<
+	analyze $datamart_schema$.$table_name$ ;
+>>
+
+
+sourceColumns(list) ::=<<
+$list:getColumnInfo()$
+>>
+
+getColumnInfo(map) ::=<<
+$map.column_name$
+>>

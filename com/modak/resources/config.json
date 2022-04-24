@@ -1,0 +1,11 @@
+{
+  "source_Url": "jdbc:postgresql://192.168.254.149:5432/vnoc_symphony",
+  "source_userName": "FkToN3LcCBLLEZi/+fNylCAEuIlTz2HwZpUhQaGr6xe4aU8oTAHTbCRGsZzfXkpIaaOL0rRBTUwgfqWSNtPlQm6/NB0mCvLKHTHVRm1ladOmZg+KwitmHheyyCTGcqA3h01lgMZhX16pVd1Il6gsyJYH/8PAg6BDLCDRJSYbqkxWz+MDOpvMWmwHq6qBmLm/OnDgaeRqacrKEkKObrkr7Sjgo+kXG538pQ1FZtn9A8dGPq5RQmx8MwlCPzG3dKca5GpI9Y5sO2AZaKnQQX+4BOO0sCndY9hX/pBD0/MdPWpiONw9dwkkkDnSLuni9Jb7y5qXZ476XOEcI3y02geBjQ==",
+  "source_password": "",
+  "target_Url": "jdbc:postgresql://w3.timescaledb.modak.com:5432/timescale_test",
+  "target_Username": "cO2zA8sWKpVz4CKYF0hNcbH5oCm51leTtDBGn05JnmhHamsViKz4V4LKcMG7RJrrUAesHVm6nDdB7bWfaKEYpj9A7HXwcOjrHzjMeFMJXAeGMpn7u/3vRvT8XIrlvfZYn0asadYYDqBAzF9AxysJtQCYWx6fq2P6bLJB6q5TXllPqe+zQhwi8o5bRNZcfkaq1OldocvBFGYqq7fGvb5R7eaV6myVwcBTKwBbb7qhwMEOm3fbYO4W72nyB1sak5eGGNN4QF9l9tYFqkTNdDjoMgLJgiaQ/lBzCiGq8a80ijB93yBjvMBAdEl9EY8YYlRP3GI8kB7KauRraslfkCIu/g==",
+  "target_Password": "",
+  "poolSize": 1,
+  "minimumIdle": 50000,
+  "driver": "org.postgresql.Driver"
+}

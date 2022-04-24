@@ -1,0 +1,1186 @@
+//-------------- dim_account_details queries start --------------------------------------
+create_datamart_staging_schema()::=<<
+create schema IF NOT EXISTS datamart_staging;
+>>
+
+
+create_datamart_staging_table_dim_account_details()::=<<
+create table IF NOT EXISTS datamart_staging.dim_account_details (
+account_id uuid,
+parent_id uuid,
+name	varchar(255),
+active	bool,
+dt_created		timestamp,
+dt_lastupdated	timestamp,
+commproxy_enabled	bool,
+exchange_enabled	bool,
+tms_enabled	bool,
+external_sync_enabled	bool,
+channel_id	int8,
+external_id	varchar(255),
+account_manager	varchar(255),
+helpdesk_email	varchar(255),
+helpdesk_phone	varchar(255),
+md5_hash text
+)
+>>
+
+delete_datamart_staging_table_dim_account_details()::=<<
+delete from datamart_staging.dim_account_details;
+>>
+
+insert_into_datamart_staging_table_dim_account_details()::=<<
+insert into datamart_staging.dim_account_details (account_id, parent_id, name, active, dt_created, dt_lastupdated, commproxy_enabled, exchange_enabled, tms_enabled, external_sync_enabled, channel_id, external_id, account_manager, helpdesk_email, helpdesk_phone,md5_hash)
+select account_id, parent_id,name, active, dt_created, dt_lastupdated,commproxy_enabled, exchange_enabled, tms_enabled, external_sync_enabled, channel_id, external_id, account_manager, helpdesk_email, helpdesk_phone, md5(coalesce(account_id::text,'')||coalesce(parent_id::text,'')||coalesce(name::text,'')||coalesce(active::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(commproxy_enabled::text,'')||coalesce(exchange_enabled::text,'')||coalesce(tms_enabled::text,'')||coalesce(external_sync_enabled::text,'')||coalesce(channel_id::text,'')||coalesce(external_id::text,'')||coalesce(account_manager::text,'')||coalesce(helpdesk_email::text,'')||coalesce(helpdesk_phone::text,''))::text as md5_hash
+from (
+select a.id::uuid as account_id, a.parent_id::uuid as parent_id, a.name, a.active, a.dt_created, a.dt_lastupdated, a.commproxy_enabled, a.exchange_enabled, a.tms_enabled, a.external_sync_enabled, b.channel_id, b.external_id, b.account_manager, b.helpdesk_email, b.helpdesk_phone
+from staging.accounts a left outer join staging.account_details b
+on a.id=b.id)X
+>>
+
+analyze_datamart_staging_table_dim_account_details()::=<<
+analyze datamart_staging.dim_account_details
+>>
+//-------------- dim_account_details queries end --------------------------------------
+
+//-------------- dim_account_usages_details queries start --------------------------------------
+create_datamart_staging_table_dim_account_usages_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.dim_account_usages_details (
+	id int8 ,
+	account_id uuid ,
+	sf_account_id text ,
+	code text,
+	description text ,
+	job_id text ,
+	contract_id text ,
+	service_id text ,
+	qty_used numeric(10, 2) ,
+	qty_shipped int4 ,
+	dt_reporting_period_end timestamp ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp,
+	md5_hash text
+)
+>>
+
+delete_datamart_staging_table_dim_account_usages_details()::=<<
+delete from datamart_staging.dim_account_usages_details
+>>
+
+
+insert_datamart_staging_table_dim_account_usages_details()::=<<
+insert into  datamart_staging.dim_account_usages_details
+select id, account_id, sf_account_id, code, description, job_id, contract_id, service_id, qty_used, qty_shipped, dt_reporting_period_end, dt_created, dt_lastupdated, md5(coalesce(id::text,'')||coalesce(account_id::text,'')||coalesce(sf_account_id::text,'')||coalesce(code::text,'')||coalesce(description::text,'')||coalesce(job_id::text,'')||coalesce(contract_id::text,'')||coalesce(service_id::text,'')||coalesce(qty_used::text,'')||coalesce(qty_shipped::text,'')||coalesce(dt_reporting_period_end::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,''))::text as md5_hash
+from staging.account_usages au
+>>
+
+analyze_datamart_staging_table_dim_account_usages_details()::=<<
+analyze datamart_staging.dim_account_usages_details
+>>
+//-------------- dim_account_usages_details queries end --------------------------------------
+
+//-------------- dim_conference_elog_billing_codes queries start --------------------------------------
+create_datamart_staging_table_dim_conference_elog_billing_codes()::=<<
+CREATE TABLE if Not exists datamart_staging.dim_conference_elog_billing_codes (
+	conference_elog_billing_code_id int8 ,
+	meeting_instance_id int8 ,
+	billing_code varchar ,
+	quantity int4 ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	description varchar,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_conference_elog_billing_codes()::=<<
+delete from datamart_staging.dim_conference_elog_billing_codes
+>>
+
+insert_datamart_staging_table_dim_conference_elog_billing_codes()::=<<
+insert into datamart_staging.dim_conference_elog_billing_codes
+select *, md5(coalesce(conference_elog_billing_code_id::text,'')||coalesce(meeting_instance_id::text,'')||coalesce(billing_code::text,'')||coalesce(quantity::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(description::text,''))::text as md5_hash
+from (
+select id as conference_elog_billing_code_id, meeting_instance_id, billing_code, quantity, dt_created, dt_lastupdated, description
+from staging.conference_elog_billing_codes)X
+>>
+
+analyze_datamart_staging_table_dim_conference_elog_billing_codes()::=<<
+analyze datamart_staging.dim_conference_elog_billing_codes
+>>
+//-------------- dim_conference_elog_billing_codes queries end --------------------------------------
+
+//-------------- dim_device_details queries start --------------------------------------
+create_datamart_staging_table_dim_device_details()::=<<
+create table if Not exists datamart_staging.dim_device_details (
+	account_id uuid ,
+	location_id uuid,
+	room_id uuid ,
+	device_id uuid ,
+	customer_cost_center_id varchar(255) ,
+	active bool ,
+	serial_number varchar(255) ,
+	mac_address varchar(255) ,
+	software_version varchar(255) ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	logo_id int8 ,
+	normalized_mac_address varchar(255) ,
+	gatekeeper_ip varchar(255) ,
+	e164 varchar(255) ,
+	sip_registrar varchar(255) ,
+	sip_uri varchar(255) ,
+	snmp_community varchar(255) ,
+	vip_device bool ,
+	device_model varchar(255) ,
+	category varchar(50) ,
+	manufacturer varchar(100),
+	monitoring_service varchar(128) ,
+	monitoring_source varchar(50) ,
+	device_protocol varchar(20) ,
+	device_type varchar(20) ,
+	"name" varchar(255) ,
+	third_party_id varchar(255) ,
+	model_logo_id int8 ,
+	api_supported bool ,
+	aggregator_id uuid ,
+	is_aggregator bool ,
+	calling_method varchar(50) ,
+	monitoring_level varchar(50) ,
+	local_ip_address varchar(255) ,
+	real_local_ip_address varchar(255) ,
+	monitoring_sources jsonb,
+	ms_team_id varchar(255) ,
+	dt_warranty_expiration date ,
+	dt_lease_expiration date ,
+	device_bandwidth int4 ,
+	video_device_calculated int4 ,
+	av_controller_device_calculated int4,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_device_details()::=<<
+delete from datamart_staging.dim_device_details
+>>
+
+insert_datamart_staging_table_dim_device_details()::=<<
+insert into datamart_staging.dim_device_details
+select *, md5(coalesce(account_id::text,'')||coalesce(location_id::text,'')||coalesce(room_id::text,'')||coalesce(device_id::text,'')||coalesce(customer_cost_center_id::text,'')||coalesce(active::text,'')||coalesce(serial_number::text,'')||coalesce(mac_address::text,'')||coalesce(software_version::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(logo_id::text,'')||coalesce(normalized_mac_address::text,'')||coalesce(gatekeeper_ip::text,'')||coalesce(e164::text,'')||coalesce(sip_registrar::text,'')||coalesce(sip_uri::text,'')||coalesce(snmp_community::text,'')||coalesce(vip_device::text,'')||coalesce(device_model::text,'')||coalesce(category::text,'')||coalesce(manufacturer::text,'')||coalesce(monitoring_service::text,'')||coalesce(monitoring_source::text,'')||coalesce(device_protocol::text,'')||coalesce(device_type::text,'')||coalesce(name::text,'')||coalesce(third_party_id::text,'')||coalesce(model_logo_id::text,'')||coalesce(api_supported::text,'')||coalesce(aggregator_id::text,'')||coalesce(is_aggregator::text,'')||coalesce(calling_method::text,'')||coalesce(monitoring_level::text,'')||coalesce(local_ip_address::text,'')||coalesce(real_local_ip_address::text,'')||coalesce(monitoring_sources::text,'')||coalesce(ms_team_id::text,'')||coalesce(dt_warranty_expiration::text,'')||coalesce(dt_lease_expiration::text,'')||coalesce(device_bandwidth::text,'')||coalesce(video_device_calculated::text,'')||coalesce(av_controller_device_calculated::text,''))::text as md5_hash
+from (
+Select account_id ,location_id, a.room_id, a.id as device_id , customer_cost_center_id, active, serial_number, mac_address, software_version, a.dt_created, a.dt_lastupdated, logo_id, normalized_mac_address, gatekeeper_ip, e164, sip_registrar, sip_uri, snmp_community, vip_device, device_model, category, manufacturer, monitoring_service, monitoring_source, device_protocol, device_type, name, third_party_id, model_logo_id, api_supported, aggregator_id, is_aggregator, calling_method, monitoring_level, local_ip_address, real_local_ip_address, monitoring_sources, ms_team_id , dt_warranty_expiration
+, dt_lease_expiration, COALESCE(bandwidth, 0) AS device_bandwidth,
+CASE
+WHEN device_type::text = 'Codecs'::text THEN 1
+ELSE 0
+END AS video_device_calculated,
+CASE
+WHEN category::text = 'AV Controllers'::text AND device_type::text = 'AV Devices'::text THEN 1
+ELSE 0
+END AS av_controller_device_calculated
+from staging.devices a
+left outer join (Select a.id as room_id , b.id as location_id, b.account_id
+from staging.rooms a inner join staging.locations b
+on a.location_id = b.id ) b
+on a.room_id = b.room_id
+left outer join ( select device_id , bandwidth, dt_warranty_expiration
+, dt_lease_expiration from staging.device_extensions ) e
+on a.id = e.device_id)X
+>>
+
+analyze_datamart_staging_table_dim_device_details()::=<<
+analyze  datamart_staging.dim_device_details
+>>
+//-------------- dim_device_details queries end --------------------------------------
+
+//-------------- dim_location_details queries start --------------------------------------
+
+create_datamart_staging_table_dim_location_details()::=<<
+CREATE TABLE if not exists datamart_staging.dim_location_details (
+	account_id uuid,
+	location_id uuid ,
+	city varchar(255) ,
+	country varchar(50) ,
+	latitude numeric(10, 6) ,
+	longitude numeric(10, 6) ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	active bool ,
+	display_name varchar(255) ,
+	external_id varchar(255) ,
+	address1 varchar(255) ,
+	state_or_province varchar(255) ,
+	postal_code varchar(255) ,
+	time_zone varchar(255) ,
+	geo_location_automatic bool ,
+	location_active bool ,
+	dt_deleted varchar(16),
+	md5_hash text	);
+>>
+
+delete_datamart_staging_table_dim_location_details()::=<<
+delete from datamart_staging.dim_location_details
+>>
+
+insert_datamart_staging_table_dim_location_details()::=<<
+insert into datamart_staging.dim_location_details
+select *, md5(coalesce(account_id::text,'')||coalesce(location_id::text,'')||coalesce(city::text,'')||coalesce(country::text,'')||coalesce(latitude::text,'')||coalesce(longitude::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(active::text,'')||coalesce(display_name::text,'')||coalesce(external_id::text,'')||coalesce(address1::text,'')||coalesce(state_or_province::text,'')||coalesce(postal_code::text,'')||coalesce(time_zone::text,'')||coalesce(geo_location_automatic::text,'')||coalesce(location_active::text,'')||coalesce(dt_deleted::text,''))::text as md5_hash
+from (
+select a.account_id , a.id as location_id , a.city , a.country , a.latitude , a.longitude , a.dt_created , a.dt_lastupdated , a.active , a.display_name , b.external_id , b.address1 , b.state_or_province , b.postal_code , b.time_zone , b.geo_location_automatic ,
+coalesce(a.active,FALSE) AS location_active, null as dt_deleted
+from staging.locations a left outer join staging.location_details b
+on a.id=b.id)X
+>>
+
+analyze_datamart_staging_table_dim_location_details()::=<<
+analyze datamart_staging.dim_location_details
+>>
+//-------------- dim_location_details queries end --------------------------------------
+
+//-------------- dim_meeting_instance_ratings_details queries start --------------------------------------
+
+create_datamart_staging_table_dim_meeting_instance_ratings_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.dim_meeting_instance_ratings_details (
+	meeting_instance_rating_id int8 ,
+	meeting_instance_id int8 ,
+	rating int4 ,
+	notes jsonb,
+	md5_hash text
+);
+
+>>
+
+delete_datamart_staging_table_dim_meeting_instance_ratings_details()::=<<
+delete from datamart_staging.dim_meeting_instance_ratings_details
+>>
+
+insert_datamart_staging_table_dim_meeting_instance_ratings_details()::=<<
+insert into datamart_staging.dim_meeting_instance_ratings_details
+select *, md5(coalesce(meeting_instance_rating_id::text,'')||coalesce(meeting_instance_id::text,'')||coalesce(rating::text,'')||coalesce(notes::text,''))::text as md5_hash
+from (
+select id as meeting_instance_rating_id, meeting_instance_id, rating, notes
+from staging.meeting_instance_ratings mir)X
+>>
+
+analyze_datamart_staging_table_dim_meeting_instance_ratings_details()::=<<
+analyze datamart_staging.dim_meeting_instance_ratings_details
+>>
+//-------------- dim_meeting_instance_ratings_details queries end --------------------------------------
+
+//-------------- dim_meeting_instance_recordings queries start --------------------------------------
+
+
+create_datamart_staging_table_dim_meeting_instance_recordings()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.dim_meeting_instance_recordings (
+	meeting_instance_id int8 ,
+	recording_id int8 ,
+	dt_lastupdated timestamp,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_meeting_instance_recordings()::=<<
+delete from datamart_staging.dim_meeting_instance_recordings
+>>
+
+insert_datamart_staging_table_dim_meeting_instance_recordings()::=<<
+insert into datamart_staging.dim_meeting_instance_recordings
+select meeting_instance_id, recording_id, dt_lastupdated, md5(coalesce(meeting_instance_id::text,'')||coalesce(recording_id::text,'')||coalesce(dt_lastupdated::text,''))::text as md5_hash
+from staging.meeting_instance_recordings
+>>
+
+analyze_datamart_staging_table_dim_meeting_instance_recordings()::=<<
+analyze datamart_staging.dim_meeting_instance_recordings
+>>
+//-------------- dim_meeting_instance_recordings queries end --------------------------------------
+
+//-------------- dim_roles_details queries start --------------------------------------
+
+create_datamart_staging_table_dim_roles_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.dim_roles_details (
+	role_id int8 ,
+	"name" text ,
+	"locked" bool,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_roles_details()::=<<
+delete from datamart_staging.dim_roles_details
+>>
+
+insert_datamart_staging_table_dim_roles_details()::=<<
+insert into datamart_staging.dim_roles_details
+select *, md5(coalesce(role_id::text,'')|| coalesce(name::text,'')||coalesce(locked::text,''))::text as md5_hash
+from (
+select id as role_id, name, locked
+from staging.roles r)X
+>>
+
+analyze_datamart_staging_table_dim_roles_details()::=<<
+analyze datamart_staging.dim_roles_details
+>>
+//-------------- dim_roles_details queries end --------------------------------------
+
+
+//-------------- dim_room_details queries start --------------------------------------
+
+create_datamart_staging_table_dim_room_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.dim_room_details (
+	account_id uuid ,
+	location_id uuid ,
+	room_id uuid ,
+	location_latitude numeric(10, 6) ,
+	location_longitude numeric(10, 6) ,
+	"name" text ,
+	short_name text ,
+	capacity int4 ,
+	managed bool ,
+	in_service bool ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	tms_id text ,
+	exchange_id text ,
+	room_scheduling_option text ,
+	vip bool ,
+	display_name text ,
+	third_party_id text ,
+	public_room bool ,
+	room_number text ,
+	contact_name text ,
+	contact_phone text ,
+	contact_email text ,
+	subscription_id text ,
+	"type" text ,
+	monitored_ip_address text ,
+	dt_service_expiration date ,
+	dt_deleted timestamp ,
+	room_linked_accounts_calculated text ,
+	room_dt_certified_calculated timestamp ,
+	is_room_managed_calculated text ,
+	is_room_vip_calculated text ,
+	is_room_in_service_calculated bool ,
+	room_visibility_calculated text,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_room_details()::=<<
+delete from datamart_staging.dim_room_details
+>>
+
+insert_datamart_staging_table_dim_room_details()::=<<
+insert into datamart_staging.dim_room_details
+select *, md5(coalesce(account_id::text,'')||coalesce(location_id::text,'')||coalesce(room_id::text,'')||coalesce(location_latitude::text,'')||coalesce(location_longitude::text,'')||coalesce(name::text,'')||coalesce(short_name::text,'')||coalesce(capacity::text,'')||coalesce(managed::text,'')||coalesce(in_service::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(tms_id::text,'')||coalesce(exchange_id::text,'')||coalesce(room_scheduling_option::text,'')||coalesce(vip::text,'')||coalesce(display_name::text,'')||coalesce(third_party_id::text,'')||coalesce(public_room::text,'')||coalesce(room_number::text,'')||coalesce(contact_name::text,'')||coalesce(contact_phone::text,'')||coalesce(contact_email::text,'')||coalesce(subscription_id::text,'')||coalesce(type::text,'')||coalesce(monitored_ip_address::text,'')||coalesce(dt_service_expiration::text,'')||coalesce(dt_deleted::text,'')||coalesce(room_linked_accounts_calculated::text,'')||coalesce(room_dt_certified_calculated::text,'')||coalesce(is_room_managed_calculated::text,'')||coalesce(is_room_vip_calculated::text,'')||coalesce(is_room_in_service_calculated::text,'')||coalesce(room_visibility_calculated::text,''))::text as md5_hash
+from (
+select a.account_id::uuid as account_id, a.location_id::uuid, a.id::uuid as room_id, a.location_latitude,a.location_longitude, a.name , a.short_name , a.capacity , a.managed , a.in_service , a.dt_created , a.dt_lastupdated , a.tms_id , a.exchange_id , a.room_scheduling_option , a.vip , a.display_name , a.third_party_id , b.public_room , b.room_number , b.contact_name , b.contact_phone , b.contact_email , b.subscription_id , b.type ,
+b.monitored_ip_address ,
+b.dt_service_expiration ,
+null::timestamp as dt_deleted,
+COALESCE(z.linked_accounts, ''::text) AS room_linked_accounts_calculated,
+e.room_dt_certified_calculated,
+CASE
+WHEN managed THEN 'Managed'::text
+ELSE 'Unmanaged'::text
+END AS is_room_managed_calculated,
+CASE
+WHEN vip THEN 'VIP'::text
+ELSE 'Non-VIP'::text
+END AS is_room_vip_calculated,
+COALESCE(in_service, false) AS is_room_in_service_calculated,
+CASE
+WHEN public_room THEN 'Public'::text
+ELSE 'Private'::text
+END AS room_visibility_calculated
+from (
+select r.*,l.account_id , l.latitude as location_latitude, l.longitude as location_longitude
+from staging.rooms r left outer join staging.locations l
+on r.location_id = l.id) a
+left outer join staging.room_details b
+on a.id = b.id
+left outer join
+(select room_id,max(dt_certified) as room_dt_certified_calculated
+from staging.room_certification_dates
+group by room_id)e
+on a.id = e.room_id
+left outer join (
+SELECT uta.room_id, string_agg((uta.account_name)::text, ';<br>'::text) AS linked_accounts
+FROM (
+SELECT ut.room_id,a.name AS account_name
+FROM staging.room_account_visibility ut
+JOIN staging.accounts a
+on ut.account_id = a.id::text
+) uta
+group by room_id
+) z
+on a.id = z.room_id)X
+>>
+
+analyze_datamart_staging_table_dim_room_details()::=<<
+analyze datamart_staging.dim_room_details
+>>
+//-------------- dim_room_details queries end --------------------------------------
+
+
+//-------------- dim_ticket_details queries start --------------------------------------
+
+
+create_datamart_staging_table_dim_ticket_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.dim_ticket_details (
+	account_id uuid ,
+	room_id uuid ,
+	device_id uuid ,
+	ticket_id int8 ,
+	ticket_issue_id int8 ,
+	subject text ,
+	dt_open timestamp ,
+	dt_lastupdated timestamp ,
+	total_events int4 ,
+	ticket_alert_priority text ,
+	priority text ,
+	status text ,
+	requestor text ,
+	description text ,
+	dt_closed timestamp ,
+	third_party_ticket_id text ,
+	assign_to_email text ,
+	closed_by text ,
+	issue text ,
+	issue_resolution text ,
+	issue_source text ,
+	"comment" text ,
+	issue_type text ,
+	issue_lastupdated timestamp ,
+	issue_sub_types text ,
+	closed_by_calculated varchar ,
+	ticket_duration_interval_calculated text ,
+	is_cleared_calculated text ,
+	ticket_close_type_calculated text ,
+	open_ticket_calculated int8 ,
+	ticket_duration_days_calculated float8 ,
+	tickets_events_count_calculated text ,
+	raise_type_calculated text,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_ticket_details()::=<<
+delete from datamart_staging.dim_ticket_details
+>>
+
+insert_datamart_staging_table_dim_ticket_details()::=<<
+insert into datamart_staging.dim_ticket_details
+select *, md5(coalesce(account_id::text,'')||coalesce(room_id::text,'')||coalesce(device_id::text,'')||coalesce(ticket_id::text,'')||coalesce(ticket_issue_id::text,'')||coalesce(subject::text,'')||coalesce(dt_open::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(total_events::text,'')||coalesce(ticket_alert_priority::text,'')||coalesce(priority::text,'')||coalesce(status::text,'')||coalesce(requestor::text,'')||coalesce(description::text,'')||coalesce(dt_closed::text,'')||coalesce(third_party_ticket_id::text,'')||coalesce(assign_to_email::text,'')||coalesce(closed_by::text,'')||coalesce(issue::text,'')||coalesce(issue_resolution::text,'')||coalesce(issue_source::text,'')||coalesce("comment"::text,'')||coalesce(issue_type::text,'')||coalesce(issue_lastupdated::text,'')||coalesce(issue_sub_types::text,'')||coalesce(closed_by_calculated::text,'')||coalesce(ticket_duration_interval_calculated::text,'')||coalesce(is_cleared_calculated::text,'')||coalesce(ticket_close_type_calculated::text,'')||coalesce(open_ticket_calculated::text,'')||coalesce(ticket_duration_days_calculated::text,'')||coalesce(tickets_events_count_calculated::text,'')||coalesce(raise_type_calculated::text,''))::text as md5_hash
+from (
+select a.account_id, a.room_id ,a.device_id, a.id as ticket_id , c.id as ticket_issue_id, a.subject, a.dt_open, a.dt_lastupdated, a.total_events, a.ticket_alert_priority, a.priority, a.status,
+b.requestor, b.description, b.dt_closed, b.third_party_ticket_id, b.assign_to_email, b.closed_by,
+c.issue,
+case
+when length(coalesce(c.resolution, '')) = 0 THEN 'None' ELSE c.resolution
+end as issue_resolution,
+c.source as issue_source, c.comment, c.type as issue_type, c.dt_lastupdated as issue_lastupdated, c.issue_sub_types,
+CASE
+WHEN ((status)::text = 'Open'::text) THEN 'Not Closed'::character varying
+WHEN (closed_by IS NULL) THEN 'Unknown'::character varying
+WHEN ((closed_by)::text = ANY (ARRAY['Symphony'::text, 'ServiceNow'::text, 'Salesforce'::text])) THEN closed_by
+WHEN ((closed_by)::text ~ '%@avi%'::text) THEN 'AVI-SPL User'::character varying
+ELSE 'Other'::character varying
+END AS closed_by_calculated,
+CASE
+WHEN (date_part('day'::text, (COALESCE((dt_closed)::timestamp with time zone, now()) - (dt_open)::timestamp with time zone)) < (1)::double precision) THEN 'Less than 1 day'::text
+WHEN (date_part('day'::text, (COALESCE((dt_closed)::timestamp with time zone, now()) - (dt_open)::timestamp with time zone)) < (20)::double precision) THEN '1 to 20 days'::text
+WHEN (date_part('day'::text, (COALESCE((dt_closed)::timestamp with time zone, now()) - (dt_open)::timestamp with time zone)) < (60)::double precision) THEN '20 to 60 days'::text
+WHEN (date_part('day'::text, (COALESCE((dt_closed)::timestamp with time zone, now()) - (dt_open)::timestamp with time zone)) < (365)::double precision) THEN '60 to 365 days'::text
+ELSE 'More than 1 year'::text
+END AS ticket_duration_interval_calculated,
+CASE
+WHEN ((ticket_alert_priority)::text = 'Informational'::text) THEN 'Yes'::text
+WHEN (ticket_alert_priority IS NULL) THEN 'Yes'::text
+ELSE 'No'::text
+END AS is_cleared_calculated,
+CASE
+WHEN closed_by = 'Symphony' THEN 'Closed Automatically'
+WHEN closed_by IS NULL THEN 'Unknown'
+ELSE 'Closed Remotely'
+END ::text AS ticket_close_type_calculated ,
+CASE WHEN status = 'Open'::text THEN ticket_id ELSE NULL::bigint END AS open_ticket_calculated ,
+date_part('epoch'::text, (dt_closed - dt_open)) / (60 * 60 * 24)::double precision as ticket_duration_days_calculated,
+CASE
+WHEN (COALESCE(total_events, 0) = 0) THEN 'Unknown'::text
+WHEN (total_events = 1) THEN '1 event'::text
+WHEN (total_events = 2) THEN '2 events'::text
+WHEN (total_events = 3) THEN '3 events'::text
+WHEN (total_events = 4) THEN '4 events'::text
+WHEN (total_events <= 9) THEN '5-9 events'::text
+WHEN (total_events <= 19) THEN '10-19 events'::text
+WHEN (total_events <= 99) THEN '20-99 events'::text
+WHEN (total_events <= 999) THEN '100-999 events'::text
+ELSE 'More than 1000 events'::text
+END AS tickets_events_count_calculated,
+CASE
+WHEN ("substring"(lower(requestor), 1, 14) = 'notifications@'::text) THEN 'Raised Automatically'::text
+ELSE 'Raised Manually'::text
+END AS raise_type_calculated
+from staging.tickets a
+left outer join staging.ticket_details b
+on a.id = b.id
+left outer join staging.ticket_issues c
+on a.id = c.ticket_id)X
+
+>>
+
+analyze_datamart_staging_table_dim_ticket_details()::=<<
+analyze datamart_staging.dim_ticket_details
+>>
+
+//-------------- dim_ticket_details queries end --------------------------------------
+
+
+//-------------- dim_ticket_related_meetings  queries start --------------------------------------
+create_datamart_staging_table_dim_ticket_related_meetings()::=<<
+CREATE TABLE IF NOT EXISTS  datamart_staging.dim_ticket_related_meetings (
+	ticket_related_meeting_id int8 ,
+	ticket_id int8 ,
+	conference_id int8 ,
+	title text ,
+	meeting_instance_id int8 ,
+	dt_lastupdated timestamp ,
+	dt_start_time timestamp,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_ticket_related_meetings()::=<<
+delete from datamart_staging.dim_ticket_related_meetings
+>>
+
+insert_datamart_staging_table_dim_ticket_related_meetings()::=<<
+insert into datamart_staging.dim_ticket_related_meetings
+select *, md5(coalesce(ticket_related_meeting_id::text,'')||coalesce(ticket_id::text,'')||coalesce(conference_id::text,'')||coalesce(title::text,'')||coalesce(meeting_instance_id::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(dt_start_time::text,''))::text as md5_hash
+from (
+select id as ticket_related_meeting_id, ticket_id, conference_id, title, meeting_instance_id, dt_lastupdated, dt_start_time
+from staging.ticket_related_meetings trm
+)X
+>>
+
+analyze_datamart_staging_table_dim_ticket_related_meetings()::=<<
+analyze datamart_staging.dim_ticket_related_meetings
+>>
+
+//-------------- dim_ticket_related_meetings  queries end  --------------------------------------
+
+
+//-------------- dim_user_details  queries start --------------------------------------
+
+create_datamart_staging_table_dim_user_details()::=<<
+CREATE TABLE IF NOT EXISTS  datamart_staging.dim_user_details (
+	account_id uuid ,
+	user_id uuid ,
+	role_id int4 ,
+	active bool ,
+	first_name text ,
+	last_name text ,
+	email text ,
+	dt_lastlogin timestamp ,
+	vip bool ,
+	user_name text ,
+	city text ,
+	state_or_province text ,
+	postal_code text ,
+	country text ,
+	time_zone text ,
+	department text ,
+	title text ,
+	supervisor text ,
+	billing_code text ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	"language" text ,
+	self_registered bool ,
+	self_registered_cal text,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_user_details()::=<<
+delete from datamart_staging.dim_user_details
+>>
+
+insert_datamart_staging_table_dim_user_details()::=<<
+insert into datamart_staging.dim_user_details
+select *, md5(coalesce(account_id::text,'')||coalesce(user_id::text,'')||coalesce(role_id::text,'')||coalesce(active::text,'')||coalesce(first_name::text,'')||coalesce(last_name::text,'')||coalesce(email::text,'')||coalesce(dt_lastlogin::text,'')||coalesce(vip::text,'')||coalesce(user_name::text,'')||coalesce(city::text,'')||coalesce(state_or_province::text,'')||coalesce(postal_code::text,'')||coalesce(country::text,'')||coalesce(time_zone::text,'')||coalesce(department::text,'')||coalesce(title::text,'')||coalesce(supervisor::text,'')||coalesce(billing_code::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(language::text,'')||coalesce(self_registered::text,'')||coalesce(self_registered_cal::text,''))::text as md5_hash
+from (
+select a.account_id::uuid as account_id, a.id::uuid as user_id, a.role_id, a.active, a.first_name, a.last_name, a.email , a.dt_lastlogin , a.vip , b.user_name , b.city , b.state_or_province , b.postal_code , b.country , b.time_zone , b.department , b.title , b.supervisor , b.billing_code , b.dt_created , b.dt_lastupdated , b.language , b.self_registered,
+CASE
+       WHEN b.self_registered IS TRUE THEN 'Yes'::text
+       ELSE 'No'::text
+END AS self_registered_cal
+from staging.users a left outer join staging.user_details b
+on a.id=b.id)X
+>>
+
+analyze_datamart_staging_table_dim_user_details()::=<<
+analyze datamart_staging.dim_user_details
+>>
+
+//-------------- dim_user_details  queries end  --------------------------------------
+
+//-------------- dim_users_services_details  queries start  --------------------------------------
+
+create_datamart_staging_table_dim_users_services_details()::=<<
+CREATE TABLE IF NOT EXISTS  datamart_staging.dim_users_services_details (
+	user_id text ,
+	account_service text,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_users_services_details()::=<<
+delete from datamart_staging.dim_users_services_details
+>>
+
+insert_datamart_staging_table_dim_users_services_details()::=<<
+insert into datamart_staging.dim_users_services_details
+select user_id, account_service, md5(coalesce(user_id::text,'')||coalesce(account_service::text,''))::text as md5_hash
+from staging.users_services us
+>>
+
+analyze_datamart_staging_table_dim_users_services_details()::=<<
+analyze datamart_staging.dim_users_services_details
+>>
+
+
+//-------------- dim_users_services_details  queries end  --------------------------------------
+
+//-------------- dim_vmrs_details  queries start  --------------------------------------
+
+create_datamart_staging_table_dim_vmrs_details()::=<<
+CREATE TABLE IF NOT EXISTS  datamart_staging.dim_vmrs_details (
+	account_id uuid ,
+	user_id uuid ,
+	vmrs_id uuid ,
+	vmr_type text ,
+	vmr_name text ,
+	active bool ,
+	uri text ,
+	e164 text ,
+	host_layout text ,
+	guest_layout text ,
+	dt_lastupdated timestamp ,
+	"dynamic" bool ,
+	shared bool ,
+	provider text ,
+	external_owner text,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_vmrs_details()::=<<
+delete from datamart_staging.dim_vmrs_details
+>>
+
+insert_datamart_staging_table_dim_vmrs_details()::=<<
+insert into datamart_staging.dim_vmrs_details
+select *, md5(coalesce(account_id::text,'')||coalesce(user_id::text,'')||coalesce(vmrs_id::text,'')||coalesce(vmr_type::text,'')||coalesce(vmr_name::text,'')||coalesce(active::text,'')||coalesce(uri::text,'')||coalesce(e164::text,'')||coalesce(host_layout::text,'')||coalesce(guest_layout::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(dynamic::text,'')||coalesce(shared::text,'')||coalesce(provider::text,'')||coalesce(external_owner::text,''))::text as md5_hash
+from (
+select  account_id::uuid as account_id, user_id::uuid as user_id, id::uuid as vmrs_id , vmr_type, vmr_name, active, uri, e164, host_layout, guest_layout, dt_lastupdated, dynamic, shared, provider, external_owner
+from staging.vmrs)X
+>>
+
+analyze_datamart_staging_table_dim_vmrs_details()::=<<
+analyze datamart_staging.dim_vmrs_details
+>>
+
+
+//-------------- dim_vmrs_details  queries end  --------------------------------------
+
+
+//-------------- fact_conference_elog_attendance_details  queries start  --------------------------------------
+
+create_datamart_staging_table_fact_conference_elog_attendance_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.fact_conference_elog_attendance_details (
+	conference_elog_attendance_id int8 ,
+	meeting_instance_id int8 ,
+	room_id text ,
+	time_video_start timestamp ,
+	time_video_end timestamp ,
+	capacity int4 ,
+	attendance_actual int4 ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_fact_conference_elog_attendance_details()::=<<
+delete from datamart_staging.fact_conference_elog_attendance_details
+>>
+
+insert_datamart_staging_table_fact_conference_elog_attendance_details()::=<<
+insert into datamart_staging.fact_conference_elog_attendance_details
+select *, md5(coalesce(conference_elog_attendance_id::text,'')||coalesce(meeting_instance_id::text,'')||coalesce(room_id::text,'')||coalesce(time_video_start::text,'')||coalesce(time_video_end::text,'')||coalesce(capacity::text,'')||coalesce(attendance_actual::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,''))::text as md5_hash
+from (
+select id as conference_elog_attendance_id, meeting_instance_id, room_id, time_video_start, time_video_end, capacity, attendance_actual, dt_created, dt_lastupdated
+from staging.conference_elog_attendances cea)X
+>>
+
+analyze_datamart_staging_table_fact_conference_elog_attendance_details()::=<<
+analyze datamart_staging.fact_conference_elog_attendance_details
+>>
+
+
+//-------------- fact_conference_elog_attendance_details  queries end  --------------------------------------
+
+//-------------- fact_conference_elog_participant_details  queries start  --------------------------------------
+
+
+
+
+create_datamart_staging_table_fact_conference_elog_participant_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.fact_conference_elog_participant_details (
+	conference_elog_participant_id int8 ,
+	meeting_instance_id int8 ,
+	room_id text ,
+	device_id text ,
+	connect_protocol text ,
+	dialed_in bool ,
+	bandwidth int4 ,
+	time_connected timestamp ,
+	time_disconnected timestamp ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	address text ,
+	participant_id int8 ,
+	"name" text ,
+	remote_address text ,
+	external_id text,
+	md5_hash text
+);
+
+>>
+
+delete_datamart_staging_table_fact_conference_elog_participant_details()::=<<
+delete from datamart_staging.fact_conference_elog_participant_details
+>>
+
+insert_datamart_staging_table_fact_conference_elog_participant_details()::=<<
+insert into datamart_staging.fact_conference_elog_participant_details
+select *, md5(coalesce(conference_elog_participant_id::text,'')||coalesce(meeting_instance_id::text,'')||coalesce(room_id::text,'')||coalesce(device_id::text,'')||coalesce(connect_protocol::text,'')||coalesce(dialed_in::text,'')||coalesce(bandwidth::text,'')||coalesce(time_connected::text,'')||coalesce(time_disconnected::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(address::text,'')||coalesce(participant_id::text,'')||coalesce(name::text,'')||coalesce(remote_address::text,'')||coalesce(external_id::text,''))::text as md5_hash
+from (
+select id as conference_elog_participant_id, meeting_instance_id, room_id, device_id, connect_protocol, dialed_in, bandwidth, time_connected, time_disconnected, dt_created, dt_lastupdated, address, participant_id, "name" , remote_address, external_id
+from staging.conference_elog_participants cep)X
+>>
+
+analyze_datamart_staging_table_fact_conference_elog_participant_details()::=<<
+analyze datamart_staging.fact_conference_elog_participant_details
+>>
+
+
+
+//-------------- fact_conference_elog_participant_details  queries end  --------------------------------------
+
+//-------------- fact_conference_participant_details  queries start  --------------------------------------
+
+
+create_datamart_staging_table_fact_conference_participant_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.fact_conference_participant_details (
+	account_id uuid ,
+	location_id uuid ,
+	room_id uuid ,
+	device_id uuid ,
+	meeting_id int8 ,
+	meeting_instance_status text ,
+	meeting_instance_start_time timestamp ,
+	meeting_instance_id int8 ,
+	conference_participant_id int8 ,
+	display_name text ,
+	room_name text ,
+	is_room_managed_calculated text ,
+	external_room_cal int8 ,
+	connect_protocol text ,
+	"name" text ,
+	address text ,
+	remote_address text ,
+	time_connected timestamp ,
+	time_disconnected timestamp ,
+	bandwidth int4 ,
+	"external" bool ,
+	scheduled bool ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	status_detail text ,
+	conference_participant_status text ,
+	call_id text ,
+	external_id text ,
+	dial_in bool ,
+	bridge_id int8 ,
+	video_layout_id int8 ,
+	custom_room_id int8 ,
+	audio_mute_rx bool ,
+	audio_mute_tx bool ,
+	video_mute_rx bool ,
+	video_mute_tx bool ,
+	num_connection_minutes_calculated float8 ,
+	connection_duration_min_calculated float8,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_fact_conference_participant_details()::=<<
+delete from datamart_staging.fact_conference_participant_details
+>>
+
+insert_datamart_staging_table_fact_conference_participant_details()::=<<
+insert into datamart_staging.fact_conference_participant_details
+select *, md5(coalesce(account_id::text,'')||coalesce(location_id::text,'')||coalesce(room_id::text,'')||coalesce(device_id::text,'')||coalesce(meeting_id::text,'')||coalesce(meeting_instance_status::text,'')||coalesce(meeting_instance_start_time::text,'')||coalesce(meeting_instance_id::text,'')||coalesce(conference_participant_id::text,'')||coalesce(display_name::text,'')||coalesce(room_name::text,'')||coalesce(is_room_managed_calculated::text,'')||coalesce(external_room_cal::text,'')||coalesce(connect_protocol::text,'')||coalesce("name"::text,'')||coalesce(address::text,'')||coalesce(remote_address::text,'')||coalesce(time_connected::text,'')||coalesce(time_disconnected::text,'')||coalesce(bandwidth::text,'')||coalesce("external"::text,'')||coalesce(scheduled::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(status_detail::text,'')||coalesce(conference_participant_status::text,'')||coalesce(call_id::text,'')||coalesce(external_id::text,'')||coalesce(dial_in::text,'')||coalesce(bridge_id::text,'')||coalesce(video_layout_id::text,'')||coalesce(custom_room_id::text,'')||coalesce(audio_mute_rx::text,'')||coalesce(audio_mute_tx::text,'')||coalesce(video_mute_rx::text,'')||coalesce(video_mute_tx::text,'')||coalesce(num_connection_minutes_calculated::text,'')||coalesce(connection_duration_min_calculated::text,''))::text as md5_hash
+from (
+select b.account_id::uuid,a.location_id::uuid ,a.room_id::uuid ,a.device_id::uuid , b.meeting_id, b.instance_status as meeting_instance_status, b.start_time as meeting_instance_start_time, a.meeting_instance_id ,a.id as conference_participant_id ,a.display_name,a.room_name, a.is_room_managed_calculated, a.external_room_cal, a.connect_protocol ,a.name ,a.address ,a.remote_address ,a.time_connected ,a.time_disconnected ,a.bandwidth ,a.external ,a.scheduled ,a.dt_created ,a.dt_lastupdated ,a.status_detail ,a.conference_participant_status ,a.call_id ,a.external_id ,a.dial_in ,a.bridge_id ,a.video_layout_id ,a.custom_room_id ,a.audio_mute_rx ,a.audio_mute_tx ,a.video_mute_rx ,a.video_mute_tx ,
+case
+when date_part('day'::text,a.time_disconnected - a.time_connected) > 1::double precision then 0::double precision
+else floor(date_part('epoch'::text, a.time_disconnected - a.time_connected) / 60::double precision) end as num_connection_minutes_calculated,
+CASE
+WHEN date_part('minute'::text, a.time_disconnected - a.time_connected) > (24 * 60)::double precision THEN 0::double precision
+ELSE date_part('minute'::text, a.time_disconnected - a.time_connected)
+END AS connection_duration_min_calculated
+from (select cp.*, r.location_id, r.display_name, coalesce(r.name,'Unknown'::CHARACTER VARYING) as room_name,
+CASE
+WHEN r.managed THEN 'Managed'::text
+ELSE 'Unmanaged'::text
+END AS is_room_managed_calculated,
+case
+	when r.managed <> true or r.managed is null then cp.id
+	else null::bigint
+end as external_room_cal
+from staging.conference_participants cp left outer join staging.rooms r
+on cp.room_id = r.id)a left outer join staging.meeting_instances b
+on a.meeting_instance_id = b.id)X
+>>
+
+analyze_datamart_staging_table_fact_conference_participant_details()::=<<
+analyze datamart_staging.fact_conference_participant_details
+>>
+
+
+//-------------- fact_conference_participant_details  queries end  --------------------------------------
+
+//-------------- fact_meeting_details  queries end  --------------------------------------
+
+
+create_datamart_staging_table_fact_meeting_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.fact_meeting_details (
+	meeting_id int8 ,
+	account_id uuid ,
+	title text ,
+	time_zone text ,
+	setup_time timestamp ,
+	start_time timestamp ,
+	end_time timestamp ,
+	requestor_email text ,
+	email_notification bool ,
+	recurrence_rule text ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	creator text ,
+	ports int4 ,
+	parent_id int8 ,
+	recurrent_instance_id text ,
+	reserved_ports int4 ,
+	join_by_phone bool ,
+	join_by_web bool ,
+	create_vmr bool ,
+	record_meeting bool ,
+	stream_meeting bool ,
+	exchange_id text ,
+	vip_meeting bool ,
+	vip_meeting_id int8 ,
+	schedmee_vip_meeting text ,
+	producer_id text ,
+	producer_service text ,
+	meeting_purpose text ,
+	schedmee_meeting_purpose text ,
+	meeting_setup text ,
+	meeting_source text ,
+	schedmee_meeting_source text ,
+	meeting_status text ,
+	meeting_service text ,
+	owner_email text ,
+	recurrence_end timestamp ,
+	audio_service_id int8 ,
+	audio_service_auto_selected bool ,
+	mcu_auto_selected bool ,
+	streaming_url text ,
+	owner_id text ,
+	vmr_id text ,
+	video_layout_id int8 ,
+	ban text ,
+	cost_center text ,
+	notes text,
+	md5_hash text
+);
+
+>>
+
+delete_datamart_staging_table_fact_meeting_details()::=<<
+delete from datamart_staging.fact_meeting_details
+>>
+
+insert_datamart_staging_table_fact_meeting_details()::=<<
+insert into datamart_staging.fact_meeting_details
+select *, md5(coalesce(meeting_id::text,'')||coalesce(account_id::text,'')||coalesce(title::text,'')||coalesce(time_zone::text,'')||coalesce(setup_time::text,'')||coalesce(start_time::text,'')||coalesce(end_time::text,'')||coalesce(requestor_email::text,'')||coalesce(email_notification::text,'')||coalesce(recurrence_rule::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(creator::text,'')||coalesce(ports::text,'')||coalesce(parent_id::text,'')||coalesce(recurrent_instance_id::text,'')||coalesce(reserved_ports::text,'')||coalesce(join_by_phone::text,'')||coalesce(join_by_web::text,'')||coalesce(create_vmr::text,'')||coalesce(record_meeting::text,'')||coalesce(stream_meeting::text,'')||coalesce(exchange_id::text,'')||coalesce(vip_meeting::text,'')||coalesce(vip_meeting_id::text,'')||coalesce(schedmee_vip_meeting::text,'')||coalesce(producer_id::text,'')||coalesce(producer_service::text,'')||coalesce(meeting_purpose::text,'')||coalesce(schedmee_meeting_purpose::text,'')||coalesce(meeting_setup::text,'')||coalesce(meeting_source::text,'')||coalesce(schedmee_meeting_source::text,'')||coalesce(meeting_status::text,'')||coalesce(meeting_service::text,'')||coalesce(owner_email::text,'')||coalesce(recurrence_end::text,'')||coalesce(audio_service_id::text,'')||coalesce(audio_service_auto_selected::text,'')||coalesce(mcu_auto_selected::text,'')||coalesce(streaming_url::text,'')||coalesce(owner_id::text,'')||coalesce(vmr_id::text,'')||coalesce(video_layout_id::text,'')||coalesce(ban::text,'')||coalesce(cost_center::text,'')||coalesce(notes::text,''))::text as md5_hash
+from (
+select id as meeting_id , account_id::uuid as account_id , title , time_zone , setup_time , start_time , end_time , requestor_email , email_notification , recurrence_rule , dt_created , dt_lastupdated , creator , ports , parent_id , recurrent_instance_id , reserved_ports , join_by_phone , join_by_web , create_vmr , record_meeting , stream_meeting , exchange_id ,
+vip_meeting ,
+CASE
+     WHEN vip_meeting THEN id
+     ELSE NULL::bigint
+END AS vip_meeting_id,
+case
+		when vip_meeting then 'VIP'::text
+		else 'Other'::text
+	end as schedmee_vip_meeting,
+producer_id, producer_service , meeting_purpose , coalesce(meeting_purpose, 'Unknown'::character varying) as schedmee_meeting_purpose, meeting_setup , meeting_source ,
+case
+		when meeting_source::text = 'User' then 'Symphony'::character varying
+		else coalesce(meeting_source, 'Unknown'::character varying)
+	end as schedmee_meeting_source,
+meeting_status , meeting_service , owner_email , recurrence_end , audio_service_id , audio_service_auto_selected , mcu_auto_selected , streaming_url , owner_id , vmr_id , video_layout_id , ban , cost_center , notes
+from staging.meetings)X;
+>>
+
+analyze_datamart_staging_table_fact_meeting_details()::=<<
+analyze datamart_staging.fact_meeting_details
+>>
+
+//-------------- fact_meeting_details  queries end  --------------------------------------
+
+
+//-------------- fact_meeting_instance_details  queries start  --------------------------------------
+
+
+create_datamart_staging_table_fact_meeting_instance_details()::=<<
+CREATE TABLE IF NOT EXISTS datamart_staging.fact_meeting_instance_details (
+	meeting_instance_id int8 ,
+	account_id text ,
+	meeting_id int8 ,
+	title text ,
+	creator text ,
+	notes text ,
+	setup_time timestamp ,
+	start_time timestamp ,
+	end_time timestamp ,
+	dt_meeting_lastupdated timestamp ,
+	dt_created timestamp ,
+	dt_lastupdated timestamp ,
+	scheduled_meeting_id int8 ,
+	producer_id text ,
+	instance_notes text ,
+	status_detail text ,
+	instance_type text ,
+	instance_status text ,
+	tms_id int8 ,
+	wrapped_up bool ,
+	vmr_id text ,
+	"locked" bool ,
+	recording_id int8 ,
+	sip_uri text ,
+	total_connected_participants int4 ,
+	video_layout_id int8 ,
+	start_date_cal date ,
+	day_mi_start_date_cal text ,
+	hours_mi_start_date_cal text ,
+	meeting_duration_minutes_cal float8 ,
+	video_meetings int8 ,
+	video_meeting_cal int8 ,
+	successfull_video_meetings int8 ,
+	unsuccessful_meeting_instance_id int8 ,
+	meeting_succeeded_cal text ,
+	meeting_produced_cal text ,
+	is_vnoc_created text ,
+	mcu_id text,
+	md5_hash text
+);
+
+>>
+
+delete_datamart_staging_table_fact_meeting_instance_details()::=<<
+delete from datamart_staging.fact_meeting_instance_details
+>>
+
+insert_datamart_staging_table_fact_meeting_instance_details()::=<<
+insert into datamart_staging.fact_meeting_instance_details
+select *, md5(coalesce(meeting_instance_id::text,'')||coalesce(account_id::text,'')||coalesce(meeting_id::text,'')||coalesce(title::text,'')||coalesce(creator::text,'')||coalesce(notes::text,'')||coalesce(setup_time::text,'')||coalesce(start_time::text,'')||coalesce(end_time::text,'')||coalesce(dt_meeting_lastupdated::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(scheduled_meeting_id::text,'')||coalesce(producer_id::text,'')||coalesce(instance_notes::text,'')||coalesce(status_detail::text,'')||coalesce(instance_type::text,'')||coalesce(instance_status::text,'')||coalesce(tms_id::text,'')||coalesce(wrapped_up::text,'')||coalesce(vmr_id::text,'')||coalesce("locked"::text,'')||coalesce(recording_id::text,'')||coalesce(sip_uri::text,'')||coalesce(total_connected_participants::text,'')||coalesce(video_layout_id::text,'')||coalesce(start_date_cal::text,'')||coalesce(day_mi_start_date_cal::text,'')||coalesce(hours_mi_start_date_cal::text,'')||coalesce(meeting_duration_minutes_cal::text,'')||coalesce(video_meetings::text,'') ||coalesce(video_meeting_cal::text,'')||coalesce(successfull_video_meetings::text,'') ||coalesce(unsuccessful_meeting_instance_id::text,'')||coalesce(meeting_succeeded_cal::text,'')||coalesce(meeting_produced_cal::text,'')||coalesce(is_vnoc_created::text,'')||coalesce(mcu_id::text,''))::text as md5_hash
+from (
+select a.id as meeting_instance_id , a.account_id , a.meeting_id , a.title , b.creator , b.notes , a.setup_time , a.start_time , a.end_time , a.dt_meeting_lastupdated , a.dt_created , a.dt_lastupdated , a.scheduled_meeting_id , a.producer_id , a.instance_notes , a.status_detail , a.instance_type , a.instance_status , a.tms_id , a.wrapped_up , a.vmr_id , a.locked , a.recording_id , a.sip_uri , a.total_connected_participants , a.video_layout_id ,
+date(a.start_time) AS start_date_cal, to_char(a.start_time, 'Day'::text) AS day_mi_start_date_cal,
+to_char(date_trunc('hour'::text, a.start_time), 'HH24:MI'::text) as hours_mi_start_date_cal,
+CASE
+WHEN date_part('day'::text, a.end_time - a.start_time) > 1::double precision THEN 0::double precision
+ELSE floor(date_part('epoch'::text, a.end_time - a.start_time) / 60::double precision)
+END AS meeting_duration_minutes_cal,
+CASE WHEN a.instance_type in ('PointToPoint','MultiPoint') THEN a.meeting_id
+ELSE NULL::bigint END AS video_meetings,
+CASE WHEN a.instance_type in ('PointToPoint','MultiPoint') THEN a.id
+ELSE NULL::bigint END AS video_meeting_cal,
+CASE WHEN a.instance_type in ('PointToPoint','MultiPoint')
+AND c.succeeded = true THEN a.meeting_id
+ELSE NULL::bigint END AS successfull_video_meetings,
+CASE
+     WHEN NOT c.succeeded THEN a.id
+     ELSE NULL::bigint
+END AS unsuccessful_meeting_instance_id,
+case
+		when c.succeeded then 'true'::text
+		when (not c.succeeded) then 'false'::text
+		else 'Unknown'::text
+	end as meeting_succeeded_cal,
+case
+		when a.wrapped_up <> true or a.wrapped_up is null then 'Not Wrapped Up'::text
+		when c.producer_attend_full_meeting then 'Full Attendance'::text
+		when c.producer_attendance_minutes is not null then 'Greet Participant'::text
+		when c.producer_monitored then 'Monitor Connection'::text
+		when c.producer_produced <> true or c.producer_produced is null then 'No Attendance'::text
+		else 'Unknown'::text
+	end as meeting_produced_cal,
+CASE
+        WHEN c.meeting_service_type = 'Concierge' THEN 'Yes'
+        ELSE 'No'::text
+    END AS is_vnoc_created,
+c.mcu_id
+from staging.meeting_instances a left outer join staging.conference_elogs b
+on a.id = b.meeting_instance_id
+left outer join staging.conference_elog_details c
+on a.id = c.meeting_instance_id)X
+>>
+
+analyze_datamart_staging_table_fact_meeting_instance_details()::=<<
+analyze datamart_staging.fact_meeting_instance_details
+>>
+
+
+
+//-------------- fact_meeting_instance_details  queries end  --------------------------------------
+
+//-------------- fact_recording_details  queries start  --------------------------------------
+
+
+
+
+create_datamart_staging_table_fact_recording_details()::=<<
+
+CREATE TABLE IF NOT EXISTS datamart_staging.fact_recording_details (
+	recording_id int8 ,
+	owner_id text ,
+	account_id uuid ,
+	dt_start timestamp ,
+	file_size int8 ,
+	duration int4 ,
+	session_id text ,
+	paused bool ,
+	published bool ,
+	is_public bool ,
+	listed bool ,
+	dt_lastupdated timestamp ,
+	status text ,
+	recorder_id text ,
+	dt_deleted timestamp ,
+	storage_provider text,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_fact_recording_details()::=<<
+delete from datamart_staging.fact_recording_details
+>>
+
+insert_datamart_staging_table_fact_recording_details()::=<<
+insert into datamart_staging.fact_recording_details
+select *, md5(coalesce(recording_id::text,'')||coalesce(owner_id::text,'')||coalesce(account_id::text,'')||coalesce(dt_start::text,'')||coalesce(file_size::text,'')||coalesce(duration::text,'')||coalesce(session_id::text,'')||coalesce(paused::text,'')||coalesce(published::text,'')||coalesce(is_public::text,'')||coalesce(listed::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(status::text,'')||coalesce(recorder_id::text,'')||coalesce(dt_deleted::text,'')||coalesce(storage_provider::text,''))::text as md5_hash
+from (
+select id as recording_id , owner_id , account_id::uuid as account_id , dt_start , file_size , duration , session_id , paused , published , is_public , listed , dt_lastupdated , status , recorder_id , dt_deleted , storage_provider
+from staging.recordings)X
+>>
+
+analyze_datamart_staging_table_fact_recording_details()::=<<
+analyze datamart_staging.fact_recording_details
+>>
+
+//-------------- fact_recording_details  queries end  --------------------------------------
+
+//-------------- fact_conference_elog_details  queries start  --------------------------------------
+
+create_datamart_staging_table_fact_conference_elog_details()::=<<
+
+CREATE TABLE if not exists datamart_staging.fact_conference_elog_details (
+	id int8 NULL,
+	meeting_instance_id int8 NULL,
+	requester varchar NULL,
+	recorded bool NULL,
+	streamed bool NULL,
+	overtime bool NULL,
+	vip_meeting bool NULL,
+	producer_produced bool NULL,
+	producer uuid NULL,
+	producer_attendance_minutes int4 NULL,
+	producer_attend_full_meeting bool NULL,
+	succeeded bool NULL,
+	quality_assessment int4 NULL,
+	third_party_tickets varchar NULL,
+	dt_created timestamp NULL,
+	dt_lastupdated timestamp NULL,
+	mcu_id uuid NULL,
+	meeting_creator_id uuid NULL,
+	meeting_purpose varchar NULL,
+	meeting_source varchar NULL,
+	meeting_service_type varchar NULL,
+	owner_email varchar NULL,
+	producer_monitored bool NULL,
+	md5_hash text
+);
+>>
+
+delete_datamart_staging_table_fact_conference_elog_details()::=<<
+delete from datamart_staging.fact_conference_elog_details
+>>
+
+insert_datamart_staging_table_fact_conference_elog_details()::=<<
+insert into datamart_staging.fact_conference_elog_details
+select id,meeting_instance_id,requester,recorded,streamed,overtime,vip_meeting,producer_produced,producer,producer_attendance_minutes,producer_attend_full_meeting,succeeded,quality_assessment,third_party_tickets,dt_created,dt_lastupdated,mcu_id,meeting_creator_id,meeting_purpose,meeting_source,meeting_service_type,owner_email,producer_monitored, md5(coalesce(id::text,'')||coalesce(meeting_instance_id::text,'')||coalesce(requester::text,'')||coalesce(recorded::text,'')||coalesce(streamed::text,'')||coalesce(overtime::text,'')||coalesce(vip_meeting::text,'')||coalesce(producer_produced::text,'')||coalesce(producer::text,'')||coalesce(producer_attendance_minutes::text,'')||coalesce(producer_attend_full_meeting::text,'')||coalesce(succeeded::text,'')||coalesce(quality_assessment::text,'')||coalesce(third_party_tickets::text,'')||coalesce(dt_created::text,'')||coalesce(dt_lastupdated::text,'')||coalesce(mcu_id::text,'')||coalesce(meeting_creator_id::text,'')||coalesce(meeting_purpose::text,'')||coalesce(meeting_source::text,'')||coalesce(meeting_service_type::text,'')||coalesce(owner_email::text,'')||coalesce(producer_monitored::text,''))::text as md5_hash
+from staging.conference_elog_details
+>>
+
+analyze_datamart_staging_table_fact_conference_elog_details()::=<<
+analyze datamart_staging.fact_conference_elog_details
+>>
+
+
+//-------------- fact_conference_elog_details  queries end  --------------------------------------
+
+//-------------- dim_meeting_mcu  queries start  --------------------------------------
+
+
+create_datamart_staging_table_dim_meeting_mcu()::=<<
+
+CREATE table if not exists datamart_staging.dim_meeting_mcu (
+id int8 NULL,
+meeting_id int8 NULL,
+device_id text NULL,
+mcu_reservation_id text NULL,
+dt_created timestamp NULL,
+dt_lastupdated timestamp NULL,
+md5_hash text
+);
+>>
+
+delete_datamart_staging_table_dim_meeting_mcu()::=<<
+delete from datamart_staging.dim_meeting_mcu
+>>
+
+insert_datamart_staging_table_dim_meeting_mcu()::=<<
+insert into datamart_staging.dim_meeting_mcu
+select id,meeting_id,device_id,mcu_reservation_id,dt_created,dt_lastupdated, md5(coalesce(id::text, '')|| coalesce(meeting_id::text, '')|| coalesce(device_id::text, '')|| coalesce(mcu_reservation_id::text, '')|| coalesce(dt_created::text, '')|| coalesce(dt_lastupdated::text, ''))::text as md5_hash
+from staging.meeting_mcu
+>>
+
+analyze_datamart_staging_table_dim_meeting_mcu()::=<<
+analyze datamart_staging.dim_meeting_mcu
+>>
